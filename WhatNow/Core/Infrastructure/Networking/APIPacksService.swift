@@ -53,15 +53,18 @@ final class APIPacksService: PacksService {
 /// API errors
 enum APIError: Error, LocalizedError {
     case invalidResponse
-    case decodingError
+    case httpError(Int)
+    case decodingError(Error)
     case networkError
 
     var errorDescription: String? {
         switch self {
         case .invalidResponse:
-            return "Invalid response from server"
-        case .decodingError:
-            return "Failed to decode response"
+            return "Invalid server response"
+        case .httpError(let code):
+            return "Server error: HTTP \(code)"
+        case .decodingError(let error):
+            return "Failed to decode response: \(error.localizedDescription)"
         case .networkError:
             return "Network error occurred"
         }

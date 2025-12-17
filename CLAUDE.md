@@ -145,11 +145,58 @@ Slot-machine style vertical picker with:
 - Include `#Preview` for all views
 - Use `.task` for view lifecycle async work
 
+## Caching & Offline Support
+
+### Caching Strategy
+
+- **Location**: `FileManager.cachesDirectory/WhatNowCache/`
+- **Format**: JSON files with metadata (version, cachedAt)
+- **Version Checking**: Compares cached version with API version
+- **Strategy**: Cache-first, fallback to API
+
+### Cache Flow
+
+1. Check cache for data
+2. If cached and version matches → use cached data
+3. If no cache or version mismatch → fetch from API
+4. Save API response to cache with version
+
+### Logger
+
+All API calls are logged with:
+- Request URL and method
+- Response status code
+- Response data (truncated for large responses)
+- Cache hits/misses
+- Errors
+
+**Log Levels**: 🔍 DEBUG, ℹ️ INFO, ⚠️ WARNING, ❌ ERROR
+
+View logs in Xcode console or Console.app (OSLog subsystem: `com.cloudy.WhatNow`)
+
+## Settings
+
+### Appearance Modes
+
+- **Light**: Force light mode
+- **Dark**: Force dark mode
+- **System**: Follow system appearance (default)
+
+### Implementation
+
+- Stored in `UserDefaults`
+- Observed via `NotificationCenter`
+- Applied via `.preferredColorScheme()` on root view
+- Access: Gear icon in HomeView toolbar
+
 ## Dependency Injection
 
 Access dependencies via `DependencyContainer.shared`:
 
 ```swift
+let logger = DependencyContainer.shared.logger
+let cacheService = DependencyContainer.shared.cacheService
+let settingsStore = DependencyContainer.shared.settingsStore
 let packsService = DependencyContainer.shared.packsService
 let fetchMallsUseCase = DependencyContainer.shared.fetchMallsUseCase
 ```

@@ -11,10 +11,27 @@ import Foundation
 final class DependencyContainer {
     static let shared = DependencyContainer()
 
+    // MARK: - Infrastructure
+
+    lazy var logger: Logger = {
+        ConsoleLogger()
+    }()
+
+    lazy var cacheService: CacheService = {
+        FileManagerCacheService(logger: logger)
+    }()
+
+    lazy var settingsStore: SettingsStore = {
+        UserDefaultsSettingsStore()
+    }()
+
     // MARK: - Services
 
     lazy var packsService: PacksService = {
-        APIPacksService()
+        CachedAPIPacksService(
+            cache: cacheService,
+            logger: logger
+        )
     }()
 
     // MARK: - Use Cases

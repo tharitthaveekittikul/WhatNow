@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct HomeView: View {
+    @State private var navigationPath = NavigationPath()
+
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ZStack {
                 Color.App.background
                     .ignoresSafeArea()
@@ -23,7 +25,7 @@ struct HomeView: View {
                             .font(.appLargeTitle)
                             .foregroundColor(.App.text)
 
-                        Text("อะไรดี")
+                        Text("Decision Helper")
                             .font(.appTitle3)
                             .foregroundColor(.App.textSecondary)
                     }
@@ -32,7 +34,9 @@ struct HomeView: View {
 
                     // Decision cards
                     VStack(spacing: 20) {
-                        NavigationLink(destination: FoodCategoryView()) {
+                        Button {
+                            navigationPath.append(AppRoute.foodCategory)
+                        } label: {
                             DecisionCardContent(
                                 title: DecisionCategory.food.title,
                                 emoji: DecisionCategory.food.emoji,
@@ -41,7 +45,9 @@ struct HomeView: View {
                         }
                         .buttonStyle(CardButtonStyle())
 
-                        NavigationLink(destination: Text("Activities Coming Soon!").font(.appTitle)) {
+                        Button {
+                            navigationPath.append(AppRoute.activityCategory)
+                        } label: {
                             DecisionCardContent(
                                 title: DecisionCategory.activity.title,
                                 emoji: DecisionCategory.activity.emoji,
@@ -55,6 +61,37 @@ struct HomeView: View {
                     Spacer()
                 }
             }
+            .navigationDestination(for: AppRoute.self) { route in
+                destinationView(for: route)
+            }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        navigationPath.append(AppRoute.settings)
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .foregroundColor(.App.text)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func destinationView(for route: AppRoute) -> some View {
+        switch route {
+        case .foodCategory:
+            FoodCategoryView()
+        case .activityCategory:
+            Text("Activities Coming Soon!").font(.appTitle)
+        case .mallSelection:
+            MallSelectionView()
+        case .famousStores:
+            Text("Famous Stores Coming Soon!").font(.appTitle)
+        case .spin(let mall):
+            SpinView(mall: mall)
+        case .settings:
+            SettingsView()
         }
     }
 }

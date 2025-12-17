@@ -14,7 +14,7 @@ struct Mall: Identifiable, Codable, Hashable {
     let displayName: String
     let city: String
     let assetKey: String
-    let tags: [String]
+    let tags: [String]?
 
     var id: String { mallId }
 }

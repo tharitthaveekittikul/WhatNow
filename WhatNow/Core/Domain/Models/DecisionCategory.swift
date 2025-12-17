@@ -9,8 +9,8 @@ import Foundation
 
 /// Top-level decision categories
 enum DecisionCategory: String, CaseIterable, Identifiable {
-    case food = "กินอะไรดี"
-    case activity = "ทำอะไรดี"
+    case food = "What to Eat?"
+    case activity = "What to Do?"
 
     var id: String { rawValue }
 
@@ -28,8 +28,8 @@ enum DecisionCategory: String, CaseIterable, Identifiable {
 
 /// Food source type
 enum FoodSourceType: String, CaseIterable, Identifiable {
-    case mall = "ร้านในห้าง"
-    case famous = "ร้านดัง"
+    case mall = "Mall Stores"
+    case famous = "Famous Stores"
 
     var id: String { rawValue }
 

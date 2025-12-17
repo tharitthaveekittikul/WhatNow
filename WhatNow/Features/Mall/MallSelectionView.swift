@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MallSelectionView: View {
     @StateObject private var viewModel = MallSelectionViewModel()
+    @State private var hasAppeared = false
 
     var body: some View {
         ZStack {
@@ -20,7 +21,7 @@ struct MallSelectionView: View {
                     .tint(.App.text)
             } else if let errorMessage = viewModel.errorMessage {
                 VStack(spacing: 16) {
-                    Text("เกิดข้อผิดพลาด")
+                    Text("Error")
                         .font(.appTitle2)
                         .foregroundColor(.App.text)
 
@@ -29,7 +30,7 @@ struct MallSelectionView: View {
                         .foregroundColor(.App.textSecondary)
                         .multilineTextAlignment(.center)
 
-                    Button("ลองอีกครั้ง") {
+                    Button("Try Again") {
                         Task {
                             await viewModel.loadMalls()
                         }
@@ -38,25 +39,33 @@ struct MallSelectionView: View {
                 }
                 .padding()
             } else {
-                ScrollView {
-                    VStack(spacing: 16) {
-                        ForEach(viewModel.malls) { mall in
-                            NavigationLink(destination: SpinView(mall: mall)) {
-                                MallCardContent(mall: mall)
-                            }
-                            .buttonStyle(CardButtonStyle())
-                        }
-                    }
-                    .padding()
-                }
+                MallListView(malls: viewModel.malls)
             }
         }
-        .navigationTitle("เลือกห้าง")
+        .navigationTitle("Select Mall")
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            if viewModel.malls.isEmpty {
-                await viewModel.loadMalls()
+            guard !hasAppeared else { return }
+            hasAppeared = true
+            await viewModel.loadMalls()
+        }
+    }
+}
+
+struct MallListView: View {
+    let malls: [Mall]
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                ForEach(malls) { mall in
+                    NavigationLink(value: AppRoute.spin(mall: mall)) {
+                        MallCardContent(mall: mall)
+                    }
+                    .buttonStyle(CardButtonStyle())
+                }
             }
+            .padding()
         }
     }
 }

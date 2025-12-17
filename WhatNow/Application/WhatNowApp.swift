@@ -15,6 +15,7 @@ struct WhatNowApp: App {
         WindowGroup {
             HomeView()
                 .environmentObject(appEnvironment)
+                .preferredColorScheme(appEnvironment.colorScheme)
         }
     }
 }

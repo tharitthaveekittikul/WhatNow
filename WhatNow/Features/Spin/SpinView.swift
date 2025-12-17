@@ -14,6 +14,7 @@ struct SpinView: View {
     @State private var isSpinning = false
     @State private var selectedIndex = 0
     @State private var spinOffset: CGFloat = 0
+    @State private var hasAppeared = false
 
     init(mall: Mall) {
         self.mall = mall
@@ -30,7 +31,7 @@ struct SpinView: View {
                     .tint(.App.text)
             } else if let errorMessage = viewModel.errorMessage {
                 VStack(spacing: 16) {
-                    Text("เกิดข้อผิดพลาด")
+                    Text("Error")
                         .font(.appTitle2)
                         .foregroundColor(.App.text)
 
@@ -39,7 +40,7 @@ struct SpinView: View {
                         .foregroundColor(.App.textSecondary)
                         .multilineTextAlignment(.center)
 
-                    Button("ลองอีกครั้ง") {
+                    Button("Try Again") {
                         Task {
                             await viewModel.loadStores()
                         }
@@ -55,7 +56,7 @@ struct SpinView: View {
                             .font(.appTitle2)
                             .foregroundColor(.App.text)
 
-                        Text("\(viewModel.stores.count) ร้าน")
+                        Text("\(viewModel.stores.count) stores")
                             .font(.appCallout)
                             .foregroundColor(.App.textSecondary)
                     }
@@ -82,7 +83,7 @@ struct SpinView: View {
                                     value: isSpinning
                                 )
 
-                            Text(isSpinning ? "กำลังสุ่ม..." : "SPIN")
+                            Text(isSpinning ? "Spinning..." : "SPIN")
                                 .font(.appTitle3)
                         }
                         .foregroundColor(.white)
@@ -110,12 +111,12 @@ struct SpinView: View {
                 .padding(.top, 24)
             }
         }
-        .navigationTitle("สุ่มร้าน")
+        .navigationTitle("Random Store")
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            if viewModel.stores.isEmpty {
-                await viewModel.loadStores()
-            }
+            guard !hasAppeared else { return }
+            hasAppeared = true
+            await viewModel.loadStores()
         }
     }
 
@@ -159,7 +160,7 @@ struct SpinView: View {
                 displayName: "สยามพารากอน",
                 city: "Bangkok",
                 assetKey: "mall_paragon",
-                tags: ["bts"]
+                tags: ["bts", "tourist"]
             )
         )
     }

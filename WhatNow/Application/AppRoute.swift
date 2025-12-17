@@ -14,4 +14,5 @@ enum AppRoute: Hashable {
     case mallSelection
     case famousStores
     case spin(mall: Mall)
+    case settings
 }

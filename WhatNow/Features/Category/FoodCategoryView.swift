@@ -17,7 +17,7 @@ struct FoodCategoryView: View {
                 Spacer()
 
                 // Title
-                Text("กินอะไรดี")
+                Text("What to Eat?")
                     .font(.appLargeTitle)
                     .foregroundColor(.App.text)
 
@@ -25,7 +25,7 @@ struct FoodCategoryView: View {
 
                 // Source type cards
                 VStack(spacing: 20) {
-                    NavigationLink(destination: MallSelectionView()) {
+                    NavigationLink(value: AppRoute.mallSelection) {
                         DecisionCardContent(
                             title: FoodSourceType.mall.title,
                             emoji: FoodSourceType.mall.emoji,
@@ -34,7 +34,7 @@ struct FoodCategoryView: View {
                     }
                     .buttonStyle(CardButtonStyle())
 
-                    NavigationLink(destination: Text("Famous Stores Coming Soon!").font(.appTitle)) {
+                    NavigationLink(value: AppRoute.famousStores) {
                         DecisionCardContent(
                             title: FoodSourceType.famous.title,
                             emoji: FoodSourceType.famous.emoji,
@@ -48,7 +48,7 @@ struct FoodCategoryView: View {
                 Spacer()
             }
         }
-        .navigationTitle("กินอะไรดี")
+        .navigationTitle("What to Eat?")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

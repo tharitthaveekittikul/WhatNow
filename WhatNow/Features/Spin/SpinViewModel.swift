@@ -16,6 +16,7 @@ final class SpinViewModel: ObservableObject {
 
     private let mall: Mall
     private let fetchMallStoresUseCase: FetchMallStoresUseCase
+    private var hasLoaded = false
 
     init(
         mall: Mall,
@@ -26,6 +27,10 @@ final class SpinViewModel: ObservableObject {
     }
 
     func loadStores() async {
+        // Prevent duplicate loads
+        guard !hasLoaded && !isLoading else { return }
+
+        hasLoaded = true
         isLoading = true
         errorMessage = nil
 
@@ -34,9 +39,16 @@ final class SpinViewModel: ObservableObject {
             // Get all stores from the "all" category
             if let allCategory = mallPack.categories.first(where: { $0.id == "all" }) {
                 stores = allCategory.items
+            } else {
+                errorMessage = "No stores found in 'all' category"
+            }
+
+            if stores.isEmpty {
+                errorMessage = "No stores available"
             }
         } catch {
             errorMessage = error.localizedDescription
+            hasLoaded = false // Allow retry
         }
 
         isLoading = false
