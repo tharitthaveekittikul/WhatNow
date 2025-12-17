@@ -14,9 +14,13 @@ actor CachedAPIPacksService: PacksService {
     private let cache: CacheService
     private let logger: Logger
 
-    // Track in-flight requests to prevent duplicates
-    private var inFlightMallsRequest: Task<[Mall], Error>?
-    private var inFlightMallStoresRequests: [String: Task<MallPack, Error>] = [:]
+    // Cached results to prevent duplicate requests
+    private var cachedMalls: [Mall]?
+    private var cachedMallPacks: [String: MallPack] = [:]
+
+    // Track if we're currently fetching
+    private var isFetchingMalls = false
+    private var fetchingMallIds = Set<String>()
 
     // Cache keys
     private enum CacheKey {
@@ -37,125 +41,124 @@ actor CachedAPIPacksService: PacksService {
     }
 
     func fetchMalls() async throws -> [Mall] {
-        // Check if there's already an in-flight request
-        if let existingTask = inFlightMallsRequest {
-            logger.debug("⏳ Reusing in-flight request for malls index")
-            return try await existingTask.value
+        // Return in-memory cached result if available
+        if let cached = cachedMalls {
+            logger.debug("💾 Memory cache hit: malls", category: .networking)
+            return cached
         }
 
-        // Try to load from cache first (before logging to avoid duplicate logs)
+        // If already fetching, wait and return result
+        if isFetchingMalls {
+            logger.debug("⏳ Request already in progress, waiting...", category: .networking)
+            // Busy-wait (actor serializes access)
+            while isFetchingMalls {
+                try await Task.sleep(nanoseconds: 50_000_000) // 50ms
+            }
+            if let cached = cachedMalls {
+                return cached
+            }
+            // If still no cache after waiting, something went wrong - proceed
+        }
+
+        isFetchingMalls = true
+        defer { isFetchingMalls = false }
+
+        // Try to load from cache first
         if let cached = try? cache.load(forKey: CacheKey.mallsIndex, type: MallsIndex.self) {
-            logger.info("📦 Cache hit: malls_index (v\(cached.version))")
+            logger.info("📦 Cache hit: malls_index (v\(cached.version))", category: .networking)
+            cachedMalls = cached.data.malls
             return cached.data.malls
         }
 
-        logger.info("🌐 API Request: GET /v1/packs/malls/index")
+        logger.info("🌐 API Request: GET /v1/packs/malls/index", category: .networking)
 
-        // Create and store the task
-        let task = Task<[Mall], Error> {
-            let url = URL(string: "\(baseURL)/v1/packs/malls/index")!
+        let url = URL(string: "\(baseURL)/v1/packs/malls/index")!
+        let (data, response) = try await session.data(from: url)
 
-            let (data, response) = try await session.data(from: url)
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                logger.error("❌ Invalid response type")
-                throw APIError.invalidResponse
-            }
-
-            guard (200...299).contains(httpResponse.statusCode) else {
-                logger.error("❌ API Error: HTTP \(httpResponse.statusCode)")
-                throw APIError.httpError(httpResponse.statusCode)
-            }
-
-            logger.info("✅ API Response: HTTP \(httpResponse.statusCode), decoding...")
-
-            let decoder = JSONDecoder()
-            decoder.keyDecodingStrategy = .useDefaultKeys
-
-            let mallsIndex = try decoder.decode(MallsIndex.self, from: data)
-
-            logger.info("✅ Decoded \(mallsIndex.malls.count) malls, caching...")
-
-            // Cache the response
-            try? cache.save(mallsIndex, forKey: CacheKey.mallsIndex, version: mallsIndex.version)
-
-            return mallsIndex.malls
+        guard let httpResponse = response as? HTTPURLResponse else {
+            logger.error("❌ Invalid response type", category: .networking)
+            throw APIError.invalidResponse
         }
 
-        inFlightMallsRequest = task
-
-        do {
-            let result = try await task.value
-            inFlightMallsRequest = nil
-            return result
-        } catch {
-            inFlightMallsRequest = nil
-            logger.error("❌ Failed to fetch malls: \(error.localizedDescription)")
-            throw error
+        guard (200...299).contains(httpResponse.statusCode) else {
+            logger.error("❌ API Error: HTTP \(httpResponse.statusCode)", category: .networking)
+            throw APIError.httpError(httpResponse.statusCode)
         }
+
+        logger.info("✅ API Response: HTTP \(httpResponse.statusCode), decoding...", category: .networking)
+
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .useDefaultKeys
+        let mallsIndex = try decoder.decode(MallsIndex.self, from: data)
+
+        logger.info("✅ Decoded \(mallsIndex.malls.count) malls, caching...", category: .networking)
+        try? cache.save(mallsIndex, forKey: CacheKey.mallsIndex, version: mallsIndex.version)
+
+        cachedMalls = mallsIndex.malls
+        return mallsIndex.malls
     }
 
     func fetchMallStores(mallId: String) async throws -> MallPack {
-        // Check if there's already an in-flight request for this mall
-        if let existingTask = inFlightMallStoresRequests[mallId] {
-            logger.debug("⏳ Reusing in-flight request for mall: \(mallId)")
-            return try await existingTask.value
+        // Return in-memory cached result if available
+        if let cached = cachedMallPacks[mallId] {
+            logger.debug("💾 Memory cache hit: mall_\(mallId)", category: .networking)
+            return cached
         }
 
-        // Try to load from cache first (before logging)
+        // If already fetching this mall, wait
+        if fetchingMallIds.contains(mallId) {
+            logger.debug("⏳ Request for \(mallId) already in progress, waiting...", category: .networking)
+            while fetchingMallIds.contains(mallId) {
+                try await Task.sleep(nanoseconds: 50_000_000) // 50ms
+            }
+            if let cached = cachedMallPacks[mallId] {
+                return cached
+            }
+            // If still no cache after waiting, proceed
+        }
+
+        fetchingMallIds.insert(mallId)
+        defer { fetchingMallIds.remove(mallId) }
+
+        // Try to load from cache first
         if let cached = try? cache.load(forKey: CacheKey.mall(mallId), type: MallPack.self) {
-            logger.info("📦 Cache hit: mall_\(mallId) (v\(cached.version))")
+            logger.info("📦 Cache hit: mall_\(mallId) (v\(cached.version))", category: .networking)
+            cachedMallPacks[mallId] = cached.data
             return cached.data
         }
 
-        logger.info("🌐 API Request: GET /v1/packs/malls/\(mallId)")
+        logger.info("🌐 API Request: GET /v1/packs/malls/\(mallId)", category: .networking)
 
-        // Create and store the task
-        let task = Task<MallPack, Error> {
-            let url = URL(string: "\(baseURL)/v1/packs/malls/\(mallId)")!
+        let url = URL(string: "\(baseURL)/v1/packs/malls/\(mallId)")!
+        let (data, response) = try await session.data(from: url)
 
-            let (data, response) = try await session.data(from: url)
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                logger.error("❌ Invalid response type")
-                throw APIError.invalidResponse
-            }
-
-            guard (200...299).contains(httpResponse.statusCode) else {
-                logger.error("❌ API Error: HTTP \(httpResponse.statusCode)")
-                throw APIError.httpError(httpResponse.statusCode)
-            }
-
-            logger.info("✅ API Response: HTTP \(httpResponse.statusCode), decoding...")
-
-            let decoder = JSONDecoder()
-            decoder.keyDecodingStrategy = .useDefaultKeys
-
-            do {
-                let mallPack = try decoder.decode(MallPack.self, from: data)
-                logger.info("✅ Decoded \(mallPack.categories.count) categories, caching...")
-
-                // Cache the response
-                try? cache.save(mallPack, forKey: CacheKey.mall(mallId), version: mallPack.version)
-
-                return mallPack
-            } catch {
-                logger.error("❌ Decoding failed: \(error)")
-                if let jsonString = String(data: data, encoding: .utf8) {
-                    logger.debug("📄 Raw response: \(jsonString.prefix(1000))")
-                }
-                throw error
-            }
+        guard let httpResponse = response as? HTTPURLResponse else {
+            logger.error("❌ Invalid response type", category: .networking)
+            throw APIError.invalidResponse
         }
 
-        inFlightMallStoresRequests[mallId] = task
+        guard (200...299).contains(httpResponse.statusCode) else {
+            logger.error("❌ API Error: HTTP \(httpResponse.statusCode)", category: .networking)
+            throw APIError.httpError(httpResponse.statusCode)
+        }
+
+        logger.info("✅ API Response: HTTP \(httpResponse.statusCode), decoding...", category: .networking)
+
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .useDefaultKeys
 
         do {
-            let result = try await task.value
-            inFlightMallStoresRequests[mallId] = nil
-            return result
+            let mallPack = try decoder.decode(MallPack.self, from: data)
+            logger.info("✅ Decoded \(mallPack.categories.count) categories, caching...", category: .networking)
+            try? cache.save(mallPack, forKey: CacheKey.mall(mallId), version: mallPack.version)
+
+            cachedMallPacks[mallId] = mallPack
+            return mallPack
         } catch {
-            inFlightMallStoresRequests[mallId] = nil
+            logger.error("❌ Decoding failed: \(error)", category: .networking, error: error)
+            if let jsonString = String(data: data, encoding: .utf8) {
+                logger.debug("📄 Raw response: \(jsonString.prefix(1000))", category: .networking)
+            }
             throw error
         }
     }

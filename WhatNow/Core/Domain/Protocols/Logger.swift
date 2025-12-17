@@ -8,35 +8,82 @@
 import Foundation
 
 /// Logger protocol for app-wide logging
-protocol Logger {
-    func log(_ message: String, level: LogLevel)
-    func debug(_ message: String)
-    func info(_ message: String)
-    func warning(_ message: String)
-    func error(_ message: String)
+protocol Logger: Sendable {
+    func debug(
+        _ message: String,
+        category: LogCategory,
+        file: String,
+        function: String,
+        line: Int
+    )
+
+    func info(
+        _ message: String,
+        category: LogCategory,
+        file: String,
+        function: String,
+        line: Int
+    )
+
+    func warning(
+        _ message: String,
+        category: LogCategory,
+        file: String,
+        function: String,
+        line: Int
+    )
+
+    func error(
+        _ message: String,
+        category: LogCategory,
+        error: Error?,
+        file: String,
+        function: String,
+        line: Int
+    )
 }
 
-enum LogLevel: String {
-    case debug = "🔍 DEBUG"
-    case info = "ℹ️ INFO"
-    case warning = "⚠️ WARNING"
-    case error = "❌ ERROR"
-}
+// MARK: - Convenience Extensions
 
 extension Logger {
-    func debug(_ message: String) {
-        log(message, level: .debug)
+    func debug(
+        _ message: String,
+        category: LogCategory = .general,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        debug(message, category: category, file: file, function: function, line: line)
     }
 
-    func info(_ message: String) {
-        log(message, level: .info)
+    func info(
+        _ message: String,
+        category: LogCategory = .general,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        info(message, category: category, file: file, function: function, line: line)
     }
 
-    func warning(_ message: String) {
-        log(message, level: .warning)
+    func warning(
+        _ message: String,
+        category: LogCategory = .general,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        warning(message, category: category, file: file, function: function, line: line)
     }
 
-    func error(_ message: String) {
-        log(message, level: .error)
+    func error(
+        _ message: String,
+        category: LogCategory = .general,
+        error: Error? = nil,
+        file: String = #file,
+        function: String = #function,
+        line: Int = #line
+    ) {
+        self.error(message, category: category, error: error, file: file, function: function, line: line)
     }
 }

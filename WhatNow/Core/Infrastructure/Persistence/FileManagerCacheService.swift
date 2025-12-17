@@ -8,7 +8,7 @@
 import Foundation
 
 /// FileManager-based cache implementation
-final class FileManagerCacheService: CacheService {
+final class FileManagerCacheService: CacheService, @unchecked Sendable {
     private let fileManager = FileManager.default
     private let logger: Logger
 
@@ -37,7 +37,7 @@ final class FileManagerCacheService: CacheService {
         let fileURL = cacheDirectory.appendingPathComponent("\(key).json")
 
         try encoded.write(to: fileURL, options: .atomic)
-        logger.debug("💾 Saved to disk: \(key) (v\(version))")
+        logger.debug("💾 Saved to disk: \(key) (v\(version))", category: .persistence)
     }
 
     func load<T: Codable>(forKey key: String, type: T.Type) throws -> CachedData<T>? {
@@ -52,7 +52,7 @@ final class FileManagerCacheService: CacheService {
         decoder.dateDecodingStrategy = .iso8601
 
         let cachedData = try decoder.decode(CachedData<T>.self, from: data)
-        logger.debug("💿 Loaded from disk: \(key) (v\(cachedData.version))")
+        // No logging here - let the service layer log cache hits
 
         return cachedData
     }
@@ -74,14 +74,14 @@ final class FileManagerCacheService: CacheService {
         for fileURL in contents {
             try fileManager.removeItem(at: fileURL)
         }
-        logger.info("🗑️ Cleared all cache")
+        logger.info("🗑️ Cleared all cache", category: .persistence)
     }
 
     func clear(forKey key: String) throws {
         let fileURL = cacheDirectory.appendingPathComponent("\(key).json")
         if fileManager.fileExists(atPath: fileURL.path) {
             try fileManager.removeItem(at: fileURL)
-            logger.info("🗑️ Cleared cache for key: \(key)")
+            logger.info("🗑️ Cleared cache for key: \(key)", category: .persistence)
         }
     }
 }

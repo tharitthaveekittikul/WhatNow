@@ -8,20 +8,18 @@
 import Foundation
 
 /// Simple dependency injection container
-final class DependencyContainer {
+final class DependencyContainer: @unchecked Sendable {
     static let shared = DependencyContainer()
 
     // MARK: - Infrastructure
 
-    lazy var logger: Logger = {
-        ConsoleLogger()
-    }()
+    let logger: Logger = ConsoleLogger()
 
     lazy var cacheService: CacheService = {
         FileManagerCacheService(logger: logger)
     }()
 
-    lazy var settingsStore: SettingsStore = {
+    nonisolated(unsafe) lazy var settingsStore: SettingsStore = {
         UserDefaultsSettingsStore()
     }()
 

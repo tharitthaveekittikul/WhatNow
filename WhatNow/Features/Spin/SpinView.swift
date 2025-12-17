@@ -124,28 +124,42 @@ struct SpinView: View {
         guard !isSpinning, !viewModel.stores.isEmpty else { return }
 
         isSpinning = true
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.prepare()
 
-        // Random number of spins (simulate fast spin then slow down)
-        let baseSpins = 20
-        let randomExtra = Int.random(in: 0..<viewModel.stores.count)
-        let targetIndex = (selectedIndex + baseSpins + randomExtra) % viewModel.stores.count
+        // Calculate target: minimum 2 full rotations + random position
+        let minSpins = 2
+        let totalItems = viewModel.stores.count
+        let randomExtra = Int.random(in: 0..<totalItems)
+        let targetIndex = (selectedIndex + (totalItems * minSpins) + randomExtra) % totalItems
 
-        // Animate with easing
-        withAnimation(.easeInOut(duration: 0.3)) {
-            // Fast start
-            selectedIndex = (selectedIndex + 5) % viewModel.stores.count
+        // Phase 1: Fast acceleration (0.2s) - spin 3 items
+        generator.impactOccurred()
+        withAnimation(.easeIn(duration: 0.2)) {
+            selectedIndex = (selectedIndex + 3) % totalItems
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(.easeOut(duration: 2.5)) {
-                selectedIndex = targetIndex
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            // Phase 2: Fast constant speed (1.5s) - spin through most items
+            generator.impactOccurred()
+            let midPoint = (selectedIndex + totalItems + (totalItems / 2)) % totalItems
+            withAnimation(.linear(duration: 1.5)) {
+                selectedIndex = midPoint
             }
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                isSpinning = false
-                // Haptic feedback
-                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                impactFeedback.impactOccurred()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                // Phase 3: Deceleration (2.0s) - ease to final position
+                generator.impactOccurred()
+                withAnimation(.timingCurve(0.17, 0.84, 0.44, 1.0, duration: 2.0)) {
+                    selectedIndex = targetIndex
+                }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    isSpinning = false
+                    // Strong haptic at the end
+                    let endFeedback = UIImpactFeedbackGenerator(style: .heavy)
+                    endFeedback.impactOccurred()
+                }
             }
         }
     }

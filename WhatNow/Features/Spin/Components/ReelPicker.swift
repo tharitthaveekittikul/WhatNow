@@ -13,7 +13,7 @@ struct ReelPicker: View {
     @Binding var selectedIndex: Int
 
     // Animation state
-    @State private var offset: CGFloat = 0
+    @State private var scrollPosition: CGFloat = 0
     private let itemHeight: CGFloat = 80
     private let visibleItems = 5
     private let centerIndex = 2
@@ -25,26 +25,30 @@ struct ReelPicker: View {
                 .fill(Color.App.surface)
                 .shadow(color: Color.black.opacity(0.1), radius: 20, x: 0, y: 10)
 
-            // Reel container
-            VStack(spacing: 0) {
-                ForEach(0..<visibleItems, id: \.self) { index in
-                    reelItem(at: index)
-                        .frame(height: itemHeight)
+            // Scrolling reel
+            GeometryReader { geo in
+                VStack(spacing: 0) {
+                    // Repeat items for infinite scroll effect
+                    ForEach(0..<(items.count * 3), id: \.self) { index in
+                        let store = items[index % items.count]
+                        reelItem(store: store, globalIndex: index)
+                            .frame(height: itemHeight)
+                    }
                 }
-            }
-            .offset(y: offset)
-            .mask(
-                LinearGradient(
-                    gradient: Gradient(stops: [
-                        .init(color: .clear, location: 0),
-                        .init(color: .black, location: 0.15),
-                        .init(color: .black, location: 0.85),
-                        .init(color: .clear, location: 1.0)
-                    ]),
-                    startPoint: .top,
-                    endPoint: .bottom
+                .offset(y: scrollPosition)
+                .mask(
+                    LinearGradient(
+                        gradient: Gradient(stops: [
+                            .init(color: .clear, location: 0),
+                            .init(color: .black, location: 0.15),
+                            .init(color: .black, location: 0.85),
+                            .init(color: .clear, location: 1.0)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
                 )
-            )
+            }
 
             // Center highlight bar
             Rectangle()
@@ -58,32 +62,55 @@ struct ReelPicker: View {
         }
         .frame(height: CGFloat(visibleItems) * itemHeight)
         .padding()
+        .onChange(of: selectedIndex) { newValue in
+            updateScrollPosition(animated: isSpinning)
+        }
+        .onAppear {
+            updateScrollPosition(animated: false)
+        }
+    }
+
+    private func updateScrollPosition(animated: Bool) {
+        // Calculate the scroll position to center the selected item
+        // Start from middle of repeated items (items.count)
+        let targetPosition = CGFloat(items.count + selectedIndex) * itemHeight
+        let centerOffset = CGFloat(centerIndex) * itemHeight
+        let newPosition = -(targetPosition - centerOffset)
+
+        if animated {
+            withAnimation(.easeOut(duration: 2.5)) {
+                scrollPosition = newPosition
+            }
+        } else {
+            scrollPosition = newPosition
+        }
     }
 
     @ViewBuilder
-    private func reelItem(at displayIndex: Int) -> some View {
-        let actualIndex = (selectedIndex - centerIndex + displayIndex + items.count * 100) % items.count
+    private func reelItem(store: Store, globalIndex: Int) -> some View {
+        // Calculate distance from center for scale/opacity effects
+        let itemPosition = CGFloat(globalIndex) * itemHeight
+        let centerPosition = -scrollPosition + CGFloat(centerIndex) * itemHeight
+        let distance = abs(itemPosition - centerPosition) / itemHeight
 
-        if actualIndex < items.count {
-            let store = items[actualIndex]
-            let distanceFromCenter = abs(displayIndex - centerIndex)
-            let scale = 1.0 - (CGFloat(distanceFromCenter) * 0.15)
-            let opacity = 1.0 - (CGFloat(distanceFromCenter) * 0.3)
+        let scale = max(0.85, 1.0 - (distance * 0.08))
+        let opacity = max(0.4, 1.0 - (distance * 0.25))
 
-            VStack(spacing: 4) {
-                Text(store.displayName)
-                    .font(.appHeadline)
-                    .foregroundColor(.App.text)
-                    .lineLimit(1)
+        VStack(spacing: 4) {
+            Text(store.displayName)
+                .font(.appHeadline)
+                .foregroundColor(.App.text)
+                .lineLimit(1)
+                .truncationMode(.tail)
 
-                Text(store.priceRange.displayText)
-                    .font(.appCaption)
-                    .foregroundColor(.App.textSecondary)
-            }
-            .frame(maxWidth: .infinity)
-            .scaleEffect(scale)
-            .opacity(opacity)
+            Text(store.priceRange.displayText)
+                .font(.appCaption)
+                .foregroundColor(.App.textSecondary)
         }
+        .frame(maxWidth: .infinity, alignment: .center)
+        .frame(height: itemHeight)
+        .scaleEffect(scale)
+        .opacity(opacity)
     }
 }
 

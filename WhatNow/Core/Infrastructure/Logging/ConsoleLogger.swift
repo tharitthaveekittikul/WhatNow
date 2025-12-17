@@ -8,29 +8,78 @@
 import Foundation
 import OSLog
 
-/// Console-based logger implementation using OSLog
-final class ConsoleLogger: Logger {
-    private let osLogger = OSLog(subsystem: "com.cloudy.WhatNow", category: "API")
+/// OSLog-based logger implementation
+final class ConsoleLogger: Logger, @unchecked Sendable {
+    private let subsystem = Bundle.main.bundleIdentifier ?? "com.cloudy.WhatNow"
 
-    func log(_ message: String, level: LogLevel) {
-        let timestamp = ISO8601DateFormatter().string(from: Date())
-        let logMessage = "[\(timestamp)] \(level.rawValue): \(message)"
+    // Cache OSLog instances per category
+    private let loggers: [LogCategory: os.Logger]
 
-        // Also use OSLog for system console
-        switch level {
-        case .debug:
-            os_log(.debug, log: osLogger, "%{public}@", logMessage)
-        case .info:
-            os_log(.info, log: osLogger, "%{public}@", logMessage)
-        case .warning:
-            os_log(.default, log: osLogger, "%{public}@", logMessage)
-        case .error:
-            os_log(.error, log: osLogger, "%{public}@", logMessage)
+    init() {
+        var loggers: [LogCategory: os.Logger] = [:]
+        for category in [
+            LogCategory.general,
+            .networking,
+            .persistence,
+            .ui,
+            .business
+        ] {
+            loggers[category] = os.Logger(subsystem: subsystem, category: category.rawValue)
         }
+        self.loggers = loggers
+    }
 
-        // Print to console for debug builds
-        #if DEBUG
-        print(logMessage)
-        #endif
+    func debug(
+        _ message: String,
+        category: LogCategory,
+        file: String,
+        function: String,
+        line: Int
+    ) {
+        let logger = getLogger(for: category)
+        let fileName = (file as NSString).lastPathComponent
+        logger.debug("[\(fileName):\(line)] \(function) - \(message)")
+    }
+
+    func info(
+        _ message: String,
+        category: LogCategory,
+        file: String,
+        function: String,
+        line: Int
+    ) {
+        let logger = getLogger(for: category)
+        let fileName = (file as NSString).lastPathComponent
+        logger.info("[\(fileName):\(line)] \(function) - \(message)")
+    }
+
+    func warning(
+        _ message: String,
+        category: LogCategory,
+        file: String,
+        function: String,
+        line: Int
+    ) {
+        let logger = getLogger(for: category)
+        let fileName = (file as NSString).lastPathComponent
+        logger.warning("[\(fileName):\(line)] \(function) - \(message)")
+    }
+
+    func error(
+        _ message: String,
+        category: LogCategory,
+        error: Error?,
+        file: String,
+        function: String,
+        line: Int
+    ) {
+        let logger = getLogger(for: category)
+        let fileName = (file as NSString).lastPathComponent
+        let errorDetails = error.map { " | Error: \($0.localizedDescription)" } ?? ""
+        logger.error("[\(fileName):\(line)] \(function) - \(message)\(errorDetails)")
+    }
+
+    private func getLogger(for category: LogCategory) -> os.Logger {
+        loggers[category] ?? os.Logger(subsystem: subsystem, category: "general")
     }
 }
