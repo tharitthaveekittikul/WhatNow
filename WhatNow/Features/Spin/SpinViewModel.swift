@@ -20,10 +20,10 @@ final class SpinViewModel: ObservableObject {
 
     init(
         mall: Mall,
-        fetchMallStoresUseCase: FetchMallStoresUseCase = DependencyContainer.shared.fetchMallStoresUseCase
+        fetchMallStoresUseCase: FetchMallStoresUseCase? = nil
     ) {
         self.mall = mall
-        self.fetchMallStoresUseCase = fetchMallStoresUseCase
+        self.fetchMallStoresUseCase = fetchMallStoresUseCase ?? DependencyContainer.shared.fetchMallStoresUseCase
     }
 
     func loadStores() async {

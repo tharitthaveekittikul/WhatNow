@@ -8,7 +8,7 @@
 import Foundation
 
 /// Represents a store or restaurant
-struct Store: Identifiable, Codable, Hashable {
+struct Store: Identifiable, Hashable, Sendable, Codable {
     let id: String
     let name: LocalizedName
     let displayName: String
@@ -17,7 +17,7 @@ struct Store: Identifiable, Codable, Hashable {
 }
 
 /// Price range for stores
-enum PriceRange: String, Codable, CaseIterable {
+enum PriceRange: String, CaseIterable, Sendable, Codable {
     case budget
     case mid
     case premium
@@ -32,14 +32,14 @@ enum PriceRange: String, Codable, CaseIterable {
 }
 
 /// Category of stores
-struct StoreCategory: Identifiable, Codable, Hashable {
+struct StoreCategory: Identifiable, Hashable, Sendable, Codable {
     let id: String
     let name: LocalizedName
     let items: [Store]
 }
 
 /// Mall pack response
-struct MallPack: Codable {
+struct MallPack: Sendable, Codable {
     let version: Int
     let updatedAt: String
     let mall: Mall
@@ -47,6 +47,6 @@ struct MallPack: Codable {
     let categories: [StoreCategory]
 }
 
-struct Taxonomy: Codable, Hashable {
+struct Taxonomy: Hashable, Sendable, Codable {
     let categoryIds: [String]
 }

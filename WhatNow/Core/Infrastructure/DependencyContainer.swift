@@ -13,34 +13,33 @@ final class DependencyContainer: @unchecked Sendable {
 
     // MARK: - Infrastructure
 
-    let logger: Logger = ConsoleLogger()
-
-    lazy var cacheService: CacheService = {
-        FileManagerCacheService(logger: logger)
-    }()
-
-    nonisolated(unsafe) lazy var settingsStore: SettingsStore = {
-        UserDefaultsSettingsStore()
-    }()
+    let logger: Logger
+    let cacheService: CacheService
+    let settingsStore: SettingsStore
 
     // MARK: - Services
 
-    lazy var packsService: PacksService = {
-        CachedAPIPacksService(
-            cache: cacheService,
-            logger: logger
-        )
-    }()
+    let packsService: PacksService
 
     // MARK: - Use Cases
 
-    lazy var fetchMallsUseCase: FetchMallsUseCase = {
-        DefaultFetchMallsUseCase(packsService: packsService)
-    }()
+    let fetchMallsUseCase: FetchMallsUseCase
+    let fetchMallStoresUseCase: FetchMallStoresUseCase
 
-    lazy var fetchMallStoresUseCase: FetchMallStoresUseCase = {
-        DefaultFetchMallStoresUseCase(packsService: packsService)
-    }()
+    private init() {
+        // Initialize infrastructure
+        self.logger = ConsoleLogger()
+        self.cacheService = FileManagerCacheService(logger: logger)
+        self.settingsStore = UserDefaultsSettingsStore()
 
-    private init() {}
+        // Initialize services
+        self.packsService = CachedAPIPacksService(
+            cache: cacheService,
+            logger: logger
+        )
+
+        // Initialize use cases
+        self.fetchMallsUseCase = DefaultFetchMallsUseCase(packsService: packsService)
+        self.fetchMallStoresUseCase = DefaultFetchMallStoresUseCase(packsService: packsService)
+    }
 }

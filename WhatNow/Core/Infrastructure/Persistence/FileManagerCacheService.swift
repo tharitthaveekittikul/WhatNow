@@ -5,14 +5,17 @@
 //  Infrastructure - FileManager-based Cache Service
 //
 
-import Foundation
+@preconcurrency import Foundation
 
 /// FileManager-based cache implementation
 final class FileManagerCacheService: CacheService, @unchecked Sendable {
-    private let fileManager = FileManager.default
     private let logger: Logger
+    private let cacheDirectory: URL
 
-    private lazy var cacheDirectory: URL = {
+    init(logger: Logger) {
+        self.logger = logger
+
+        let fileManager = FileManager.default
         let urls = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)
         let directory = urls[0].appendingPathComponent("WhatNowCache", isDirectory: true)
 
@@ -21,14 +24,10 @@ final class FileManagerCacheService: CacheService, @unchecked Sendable {
             try? fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
         }
 
-        return directory
-    }()
-
-    init(logger: Logger) {
-        self.logger = logger
+        self.cacheDirectory = directory
     }
 
-    func save<T: Codable>(_ data: T, forKey key: String, version: Int) throws {
+    nonisolated func save<T: Codable & Sendable>(_ data: T, forKey key: String, version: Int) throws {
         let cachedData = CachedData(data: data, version: version, cachedAt: Date())
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
@@ -40,8 +39,9 @@ final class FileManagerCacheService: CacheService, @unchecked Sendable {
         logger.debug("💾 Saved to disk: \(key) (v\(version))", category: .persistence)
     }
 
-    func load<T: Codable>(forKey key: String, type: T.Type) throws -> CachedData<T>? {
+    nonisolated func load<T: Codable & Sendable>(forKey key: String, type: T.Type) throws -> CachedData<T>? {
         let fileURL = cacheDirectory.appendingPathComponent("\(key).json")
+        let fileManager = FileManager.default
 
         guard fileManager.fileExists(atPath: fileURL.path) else {
             return nil
@@ -57,8 +57,9 @@ final class FileManagerCacheService: CacheService, @unchecked Sendable {
         return cachedData
     }
 
-    func isValid(forKey key: String, requiredVersion: Int) -> Bool {
+    nonisolated func isValid(forKey key: String, requiredVersion: Int) -> Bool {
         let fileURL = cacheDirectory.appendingPathComponent("\(key).json")
+        let fileManager = FileManager.default
 
         guard fileManager.fileExists(atPath: fileURL.path),
               let data = try? Data(contentsOf: fileURL),
@@ -69,7 +70,8 @@ final class FileManagerCacheService: CacheService, @unchecked Sendable {
         return metadata.version >= requiredVersion
     }
 
-    func clearAll() throws {
+    nonisolated func clearAll() throws {
+        let fileManager = FileManager.default
         let contents = try fileManager.contentsOfDirectory(at: cacheDirectory, includingPropertiesForKeys: nil)
         for fileURL in contents {
             try fileManager.removeItem(at: fileURL)
@@ -77,8 +79,9 @@ final class FileManagerCacheService: CacheService, @unchecked Sendable {
         logger.info("🗑️ Cleared all cache", category: .persistence)
     }
 
-    func clear(forKey key: String) throws {
+    nonisolated func clear(forKey key: String) throws {
         let fileURL = cacheDirectory.appendingPathComponent("\(key).json")
+        let fileManager = FileManager.default
         if fileManager.fileExists(atPath: fileURL.path) {
             try fileManager.removeItem(at: fileURL)
             logger.info("🗑️ Cleared cache for key: \(key)", category: .persistence)
@@ -87,6 +90,6 @@ final class FileManagerCacheService: CacheService, @unchecked Sendable {
 }
 
 /// Metadata structure for quick version checking
-private struct CacheMetadata: Codable {
+private struct CacheMetadata: Codable, Sendable {
     let version: Int
 }

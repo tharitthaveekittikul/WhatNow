@@ -29,7 +29,7 @@ final class ConsoleLogger: Logger, @unchecked Sendable {
         self.loggers = loggers
     }
 
-    func debug(
+    nonisolated func debug(
         _ message: String,
         category: LogCategory,
         file: String,
@@ -41,7 +41,7 @@ final class ConsoleLogger: Logger, @unchecked Sendable {
         logger.debug("[\(fileName):\(line)] \(function) - \(message)")
     }
 
-    func info(
+    nonisolated func info(
         _ message: String,
         category: LogCategory,
         file: String,
@@ -53,7 +53,7 @@ final class ConsoleLogger: Logger, @unchecked Sendable {
         logger.info("[\(fileName):\(line)] \(function) - \(message)")
     }
 
-    func warning(
+    nonisolated func warning(
         _ message: String,
         category: LogCategory,
         file: String,
@@ -65,7 +65,7 @@ final class ConsoleLogger: Logger, @unchecked Sendable {
         logger.warning("[\(fileName):\(line)] \(function) - \(message)")
     }
 
-    func error(
+    nonisolated func error(
         _ message: String,
         category: LogCategory,
         error: Error?,
@@ -79,7 +79,7 @@ final class ConsoleLogger: Logger, @unchecked Sendable {
         logger.error("[\(fileName):\(line)] \(function) - \(message)\(errorDetails)")
     }
 
-    private func getLogger(for category: LogCategory) -> os.Logger {
+    private nonisolated func getLogger(for category: LogCategory) -> os.Logger {
         loggers[category] ?? os.Logger(subsystem: subsystem, category: "general")
     }
 }

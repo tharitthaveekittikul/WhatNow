@@ -17,8 +17,8 @@ final class MallSelectionViewModel: ObservableObject {
     private let fetchMallsUseCase: FetchMallsUseCase
     private var hasLoaded = false
 
-    init(fetchMallsUseCase: FetchMallsUseCase = DependencyContainer.shared.fetchMallsUseCase) {
-        self.fetchMallsUseCase = fetchMallsUseCase
+    init(fetchMallsUseCase: FetchMallsUseCase? = nil) {
+        self.fetchMallsUseCase = fetchMallsUseCase ?? DependencyContainer.shared.fetchMallsUseCase
     }
 
     func loadMalls() async {

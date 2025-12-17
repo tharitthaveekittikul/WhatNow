@@ -8,7 +8,7 @@
 import Foundation
 
 /// Service protocol for fetching data packs from the API
-protocol PacksService {
+protocol PacksService: Sendable {
     /// Fetch the list of malls
     func fetchMalls() async throws -> [Mall]
 

@@ -9,7 +9,7 @@ import Foundation
 
 /// Logger protocol for app-wide logging
 protocol Logger: Sendable {
-    func debug(
+    nonisolated func debug(
         _ message: String,
         category: LogCategory,
         file: String,
@@ -17,7 +17,7 @@ protocol Logger: Sendable {
         line: Int
     )
 
-    func info(
+    nonisolated func info(
         _ message: String,
         category: LogCategory,
         file: String,
@@ -25,7 +25,7 @@ protocol Logger: Sendable {
         line: Int
     )
 
-    func warning(
+    nonisolated func warning(
         _ message: String,
         category: LogCategory,
         file: String,
@@ -33,7 +33,7 @@ protocol Logger: Sendable {
         line: Int
     )
 
-    func error(
+    nonisolated func error(
         _ message: String,
         category: LogCategory,
         error: Error?,
@@ -46,7 +46,7 @@ protocol Logger: Sendable {
 // MARK: - Convenience Extensions
 
 extension Logger {
-    func debug(
+    nonisolated func debug(
         _ message: String,
         category: LogCategory = .general,
         file: String = #file,
@@ -56,7 +56,7 @@ extension Logger {
         debug(message, category: category, file: file, function: function, line: line)
     }
 
-    func info(
+    nonisolated func info(
         _ message: String,
         category: LogCategory = .general,
         file: String = #file,
@@ -66,7 +66,7 @@ extension Logger {
         info(message, category: category, file: file, function: function, line: line)
     }
 
-    func warning(
+    nonisolated func warning(
         _ message: String,
         category: LogCategory = .general,
         file: String = #file,
@@ -76,7 +76,7 @@ extension Logger {
         warning(message, category: category, file: file, function: function, line: line)
     }
 
-    func error(
+    nonisolated func error(
         _ message: String,
         category: LogCategory = .general,
         error: Error? = nil,

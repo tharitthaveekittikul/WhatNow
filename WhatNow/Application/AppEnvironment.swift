@@ -17,11 +17,12 @@ final class AppEnvironment: ObservableObject {
     // Appearance mode
     @Published var colorScheme: ColorScheme?
 
-    init(container: DependencyContainer = .shared) {
-        self.container = container
+    init(container: DependencyContainer? = nil) {
+        let cont = container ?? DependencyContainer.shared
+        self.container = cont
 
         // Load initial appearance mode
-        let savedMode = container.settingsStore.appearanceMode
+        let savedMode = cont.settingsStore.appearanceMode
         self.colorScheme = savedMode.colorScheme
     }
 }

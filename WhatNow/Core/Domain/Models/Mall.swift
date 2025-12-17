@@ -8,7 +8,7 @@
 import Foundation
 
 /// Represents a shopping mall
-struct Mall: Identifiable, Codable, Hashable {
+struct Mall: Identifiable, Hashable, Sendable, Codable {
     let mallId: String
     let name: LocalizedName
     let displayName: String
@@ -20,13 +20,13 @@ struct Mall: Identifiable, Codable, Hashable {
 }
 
 /// Localized name for entities
-struct LocalizedName: Codable, Hashable {
+struct LocalizedName: Hashable, Sendable, Codable {
     let th: String
     let en: String
 }
 
 /// Mall index response
-struct MallsIndex: Codable {
+struct MallsIndex: Sendable, Codable {
     let version: Int
     let updatedAt: String
     let malls: [Mall]

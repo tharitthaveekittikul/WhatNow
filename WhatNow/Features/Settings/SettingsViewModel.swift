@@ -23,11 +23,12 @@ final class SettingsViewModel: ObservableObject {
     var appEnvironment: AppEnvironment?
 
     init(
-        settingsStore: SettingsStore = DependencyContainer.shared.settingsStore,
+        settingsStore: SettingsStore? = nil,
         appEnvironment: AppEnvironment? = nil
     ) {
-        self.settingsStore = settingsStore
+        let store = settingsStore ?? DependencyContainer.shared.settingsStore
+        self.settingsStore = store
         self.appEnvironment = appEnvironment
-        self.selectedAppearance = settingsStore.appearanceMode
+        self.selectedAppearance = store.appearanceMode
     }
 }

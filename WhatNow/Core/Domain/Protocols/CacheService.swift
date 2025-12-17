@@ -5,10 +5,10 @@
 //  Domain Protocol - Cache Service
 //
 
-import Foundation
+@preconcurrency import Foundation
 
 /// Service protocol for caching data with version control
-protocol CacheService {
+protocol CacheService: Sendable {
     /// Save data to cache with version
     func save<T: Codable>(_ data: T, forKey key: String, version: Int) throws
 
@@ -26,7 +26,7 @@ protocol CacheService {
 }
 
 /// Cached data wrapper with metadata
-struct CachedData<T: Codable>: Codable {
+struct CachedData<T: Codable>: Codable, Sendable {
     let data: T
     let version: Int
     let cachedAt: Date
