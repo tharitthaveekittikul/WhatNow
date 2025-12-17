@@ -68,7 +68,7 @@ actor CachedAPIPacksService: PacksService {
         defer { isFetchingMalls = false }
 
         // Try to load from cache first
-        if let cached = try? loadFromCache(
+        if let cached = try? await loadFromCache(
             key: CacheKey.mallsIndex,
             type: MallsIndex.self
         ) {
@@ -112,7 +112,7 @@ actor CachedAPIPacksService: PacksService {
             "✅ Decoded \(mallsIndex.malls.count) malls, caching...",
             category: .networking
         )
-        try? saveToCache(
+        try? await saveToCache(
             mallsIndex,
             forKey: CacheKey.mallsIndex,
             version: mallsIndex.version
@@ -151,7 +151,7 @@ actor CachedAPIPacksService: PacksService {
         defer { fetchingMallIds.remove(mallId) }
 
         // Try to load from cache first
-        if let cached = try? loadFromCache(
+        if let cached = try? await loadFromCache(
             key: CacheKey.mall(mallId),
             type: MallPack.self
         ) {
@@ -195,7 +195,7 @@ actor CachedAPIPacksService: PacksService {
                 "✅ Decoded \(mallPack.categories.count) categories, caching...",
                 category: .networking
             )
-            try? saveToCache(
+            try? await saveToCache(
                 mallPack,
                 forKey: CacheKey.mall(mallId),
                 version: mallPack.version
@@ -230,18 +230,18 @@ actor CachedAPIPacksService: PacksService {
         return try decoder.decode(T.self, from: data)
     }
 
-    private nonisolated func loadFromCache<T: Codable>(
+    private func loadFromCache<T: Codable>(
         key: String,
         type: T.Type
-    ) throws -> CachedData<T>? {
-        try cache.load(forKey: key, type: type)
+    ) async throws -> CachedData<T>? {
+        try await cache.load(forKey: key, type: type)
     }
 
-    private nonisolated func saveToCache<T: Codable>(
+    private func saveToCache<T: Codable>(
         _ data: T,
         forKey key: String,
         version: Int
-    ) throws {
-        try cache.save(data, forKey: key, version: version)
+    ) async throws {
+        try await cache.save(data, forKey: key, version: version)
     }
 }
