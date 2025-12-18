@@ -11,6 +11,7 @@ struct ReelPicker: View {
     let items: [Store]
     @Binding var isSpinning: Bool
     @Binding var reelIndex: Int
+    @EnvironmentObject private var appEnvironment: AppEnvironment
 
     // Animation state
     @State private var scrollPosition: CGFloat = 0
@@ -122,7 +123,7 @@ struct ReelPicker: View {
         let opacity = max(0.4, 1.0 - (distance * 0.25))
 
         VStack(spacing: 4) {
-            Text(store.displayName)
+            Text(store.name.localized(for: appEnvironment.currentLanguage))
                 .font(.appHeadline)
                 .foregroundColor(.App.text)
                 .lineLimit(2)

@@ -12,6 +12,7 @@ struct StoreDetailView: View {
     let mall: Mall
     let showSpinAgain: Bool
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var appEnvironment: AppEnvironment
 
     init(store: Store, mall: Mall, showSpinAgain: Bool = false) {
         self.store = store
@@ -45,7 +46,7 @@ struct StoreDetailView: View {
                     }
 
                     // Store name
-                    Text(store.displayName)
+                    Text(store.name.localized(for: appEnvironment.currentLanguage))
                         .font(.appTitle)
                         .foregroundColor(.App.text)
                         .multilineTextAlignment(.center)
@@ -63,7 +64,7 @@ struct StoreDetailView: View {
                     if let location = store.location {
                         InfoCard(
                             icon: "location.fill",
-                            title: String(localized: "Location"),
+                            title: "Location".localized(for: appEnvironment.currentLanguage),
                             content: location.displayText
                         )
                     }
@@ -71,8 +72,8 @@ struct StoreDetailView: View {
                     // Mall card
                     InfoCard(
                         icon: "building.2.fill",
-                        title: String(localized: "Mall"),
-                        content: mall.displayName
+                        title: "Mall".localized(for: appEnvironment.currentLanguage),
+                        content: mall.name.localized(for: appEnvironment.currentLanguage)
                     )
 
                     // Tags card
@@ -82,7 +83,7 @@ struct StoreDetailView: View {
                                 Image(systemName: "tag.fill")
                                     .font(.system(size: 16))
                                     .foregroundColor(.App.accentSky)
-                                Text("Categories", bundle: .main, comment: "Store detail section")
+                                Text("Categories".localized(for: appEnvironment.currentLanguage))
                                     .font(.appHeadline)
                                     .foregroundColor(.App.text)
                                 Spacer()
@@ -118,7 +119,7 @@ struct StoreDetailView: View {
                 VStack(spacing: 12) {
                     if let mapUrl = store.mapUrl, let url = URL(string: mapUrl) {
                         ActionButton(
-                            title: String(localized: "Open in Maps"),
+                            title: "Open in Maps".localized(for: appEnvironment.currentLanguage),
                             icon: "map.fill",
                             color: Color(light: Color(hex: "4A90E2"), dark: Color(hex: "5BA3F5"))
                         ) {
@@ -128,7 +129,7 @@ struct StoreDetailView: View {
 
                     if let detailUrl = store.detailUrl, let url = URL(string: detailUrl) {
                         ActionButton(
-                            title: String(localized: "View Details"),
+                            title: "View Details".localized(for: appEnvironment.currentLanguage),
                             icon: "info.circle.fill",
                             color: Color(light: Color(hex: "9B6FD6"), dark: Color(hex: "B494E5"))
                         ) {
@@ -141,7 +142,7 @@ struct StoreDetailView: View {
                             HStack(spacing: 8) {
                                 Image(systemName: "arrow.counterclockwise")
                                     .font(.system(size: 16, weight: .semibold))
-                                Text("Spin Again", bundle: .main, comment: "Action button")
+                                Text("Spin Again".localized(for: appEnvironment.currentLanguage))
                                     .font(.appHeadline)
                             }
                             .foregroundColor(.App.text)
@@ -160,8 +161,9 @@ struct StoreDetailView: View {
             }
         }
         .background(Color.App.background.ignoresSafeArea())
-        .navigationTitle(String(localized: "Result"))
+        .navigationTitle("Result".localized(for: appEnvironment.currentLanguage))
         .navigationBarTitleDisplayMode(.inline)
+        .id(appEnvironment.languageDidChange) // Refresh when language changes
     }
 }
 

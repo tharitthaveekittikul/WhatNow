@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MallSelectionView: View {
     @StateObject private var viewModel = MallSelectionViewModel()
+    @EnvironmentObject private var appEnvironment: AppEnvironment
     @State private var hasAppeared = false
 
     var body: some View {
@@ -21,7 +22,7 @@ struct MallSelectionView: View {
                     .tint(.App.text)
             } else if let errorMessage = viewModel.errorMessage {
                 VStack(spacing: 16) {
-                    Text("Error", bundle: .main, comment: "Error title")
+                    Text("Error".localized(for: appEnvironment.currentLanguage))
                         .font(.appTitle2)
                         .foregroundColor(.App.text)
 
@@ -30,7 +31,7 @@ struct MallSelectionView: View {
                         .foregroundColor(.App.textSecondary)
                         .multilineTextAlignment(.center)
 
-                    Button(String(localized: "Try Again")) {
+                    Button("Try Again".localized(for: appEnvironment.currentLanguage)) {
                         Task {
                             await viewModel.loadMalls()
                         }
@@ -42,19 +43,21 @@ struct MallSelectionView: View {
                 MallListView(malls: viewModel.malls)
             }
         }
-        .navigationTitle(String(localized: "Select Mall"))
+        .navigationTitle("Select Mall".localized(for: appEnvironment.currentLanguage))
         .navigationBarTitleDisplayMode(.inline)
         .task {
             guard !hasAppeared else { return }
             hasAppeared = true
             await viewModel.loadMalls()
         }
+        .id(appEnvironment.languageDidChange) // Refresh when language changes
     }
 }
 
 struct MallListView: View {
     let malls: [Mall]
     @State private var searchText = ""
+    @EnvironmentObject private var appEnvironment: AppEnvironment
 
     private var filteredMalls: [Mall] {
         if searchText.isEmpty {
@@ -84,10 +87,10 @@ struct MallListView: View {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 48))
                             .foregroundColor(.App.textTertiary)
-                        Text("No malls found", bundle: .main, comment: "Empty state message")
+                        Text("No malls found".localized(for: appEnvironment.currentLanguage))
                             .font(.appHeadline)
                             .foregroundColor(.App.textSecondary)
-                        Text("Try a different search term", bundle: .main, comment: "Empty state hint")
+                        Text("Try a different search term".localized(for: appEnvironment.currentLanguage))
                             .font(.appCallout)
                             .foregroundColor(.App.textTertiary)
                     }
@@ -97,12 +100,14 @@ struct MallListView: View {
             }
             .padding()
         }
-        .searchable(text: $searchText, prompt: Text("Search malls", bundle: .main, comment: "Search prompt"))
+        .searchable(text: $searchText, prompt: Text("Search malls".localized(for: appEnvironment.currentLanguage)))
+        .id(appEnvironment.languageDidChange) // Refresh when language changes
     }
 }
 
 struct MallCardContent: View {
     let mall: Mall
+    @EnvironmentObject private var appEnvironment: AppEnvironment
 
     var body: some View {
         HStack(spacing: 16) {
@@ -110,7 +115,7 @@ struct MallCardContent: View {
                 .font(.system(size: 40))
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(mall.displayName)
+                Text(mall.name.localized(for: appEnvironment.currentLanguage))
                     .font(.appHeadline)
                     .foregroundColor(.App.text)
 

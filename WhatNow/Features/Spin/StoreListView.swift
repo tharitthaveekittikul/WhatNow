@@ -11,6 +11,7 @@ struct StoreListView: View {
     let stores: [Store]
     let mall: Mall
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var appEnvironment: AppEnvironment
     @State private var searchText = ""
 
     private var filteredStores: [Store] {
@@ -47,10 +48,10 @@ struct StoreListView: View {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 48))
                             .foregroundColor(.App.textTertiary)
-                        Text("No stores found", bundle: .main, comment: "Empty state message")
+                        Text("No stores found".localized(for: appEnvironment.currentLanguage))
                             .font(.appHeadline)
                             .foregroundColor(.App.textSecondary)
-                        Text("Try a different search term", bundle: .main, comment: "Empty state hint")
+                        Text("Try a different search term".localized(for: appEnvironment.currentLanguage))
                             .font(.appCallout)
                             .foregroundColor(.App.textTertiary)
                     }
@@ -62,9 +63,9 @@ struct StoreListView: View {
             .padding(.vertical, 16)
         }
         .background(Color.App.background.ignoresSafeArea())
-        .navigationTitle(String(localized: "All Stores"))
+        .navigationTitle("All Stores".localized(for: appEnvironment.currentLanguage))
         .navigationBarTitleDisplayMode(.inline)
-        .searchable(text: $searchText, prompt: Text("Search stores", bundle: .main, comment: "Search prompt"))
+        .searchable(text: $searchText, prompt: Text("Search stores".localized(for: appEnvironment.currentLanguage)))
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: { dismiss() }) {
@@ -74,11 +75,13 @@ struct StoreListView: View {
                 }
             }
         }
+        .id(appEnvironment.languageDidChange) // Refresh when language changes
     }
 }
 
 struct StoreListRow: View {
     let store: Store
+    @EnvironmentObject private var appEnvironment: AppEnvironment
 
     var body: some View {
         HStack(spacing: 14) {
@@ -107,7 +110,7 @@ struct StoreListRow: View {
             VStack(alignment: .leading, spacing: 8) {
                 // Name and price
                 HStack(spacing: 8) {
-                    Text(store.displayName)
+                    Text(store.name.localized(for: appEnvironment.currentLanguage))
                         .font(.appHeadline)
                         .foregroundColor(.App.text)
                         .lineLimit(1)
@@ -122,7 +125,7 @@ struct StoreListRow: View {
                             Image(systemName: "location.fill")
                                 .font(.appCaption2)
                                 .foregroundColor(.App.textSecondary)
-                            Text(String(localized: "Floor \(floor)"))
+                            Text("Floor \(floor)".localized(for: appEnvironment.currentLanguage))
                                 .font(.appCallout)
                                 .foregroundColor(.App.textSecondary)
                         }

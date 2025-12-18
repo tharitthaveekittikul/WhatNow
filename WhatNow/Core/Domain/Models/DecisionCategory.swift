@@ -14,10 +14,10 @@ enum DecisionCategory: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var title: String {
+    func title(for language: Language) -> String {
         switch self {
-        case .food: return String(localized: "What to Eat?")
-        case .activity: return String(localized: "What to Do?")
+        case .food: return "What to Eat?".localized(for: language)
+        case .activity: return "What to Do?".localized(for: language)
         }
     }
 
@@ -36,10 +36,10 @@ enum FoodSourceType: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var title: String {
+    func title(for language: Language) -> String {
         switch self {
-        case .mall: return String(localized: "Mall Stores")
-        case .famous: return String(localized: "Famous Stores")
+        case .mall: return "Mall Stores".localized(for: language)
+        case .famous: return "Famous Stores".localized(for: language)
         }
     }
 

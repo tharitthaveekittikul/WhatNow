@@ -11,6 +11,7 @@ struct SpinView: View {
     let mall: Mall
 
     @StateObject private var viewModel: SpinViewModel
+    @EnvironmentObject private var appEnvironment: AppEnvironment
     @State private var isSpinning = false
     @State private var reelIndex: Int = 0  // Monotonic index that increases indefinitely
     @State private var hasAppeared = false
@@ -36,7 +37,7 @@ struct SpinView: View {
                     .tint(.App.text)
             } else if let errorMessage = viewModel.errorMessage {
                 VStack(spacing: 16) {
-                    Text("Error", bundle: .main, comment: "Error title")
+                    Text("Error".localized(for: appEnvironment.currentLanguage))
                         .font(.appTitle2)
                         .foregroundColor(.App.text)
 
@@ -45,7 +46,7 @@ struct SpinView: View {
                         .foregroundColor(.App.textSecondary)
                         .multilineTextAlignment(.center)
 
-                    Button(String(localized: "Try Again")) {
+                    Button("Try Again".localized(for: appEnvironment.currentLanguage)) {
                         Task {
                             await viewModel.loadStores()
                         }
@@ -60,11 +61,11 @@ struct SpinView: View {
                         Spacer()
 
                         VStack(spacing: 8) {
-                            Text(mall.displayName)
+                            Text(mall.name.localized(for: appEnvironment.currentLanguage))
                                 .font(.appTitle2)
                                 .foregroundColor(.App.text)
 
-                            Text(String(localized: "\(viewModel.stores.count) stores"))
+                            Text("\(viewModel.stores.count) stores".localized(for: appEnvironment.currentLanguage))
                                 .font(.appCallout)
                                 .foregroundColor(.App.textSecondary)
                         }
@@ -113,7 +114,7 @@ struct SpinView: View {
                                 )
 
                             // Text with smooth morph
-                            Text(isSpinning ? String(localized: "Spinning…") : String(localized: "SPIN"))
+                            Text(isSpinning ? "Spinning…".localized(for: appEnvironment.currentLanguage) : "SPIN".localized(for: appEnvironment.currentLanguage))
                                 .font(.appTitle3.weight(.bold))
                                 .contentTransition(.interpolate)
                         }
@@ -193,7 +194,7 @@ struct SpinView: View {
                 .padding(.top, 24)
             }
         }
-        .navigationTitle(String(localized: "Random Store"))
+        .navigationTitle("Random Store".localized(for: appEnvironment.currentLanguage))
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showStoreDetail) {
             if let store = selectedStore {
@@ -212,6 +213,7 @@ struct SpinView: View {
             hasAppeared = true
             await viewModel.loadStores()
         }
+        .id(appEnvironment.languageDidChange) // Refresh when language changes
     }
 
     private func spin() {
@@ -287,7 +289,8 @@ struct SpinView: View {
         let finalIndex = ((reelIndex % totalItems) + totalItems) % totalItems
         let store = viewModel.stores[finalIndex]
 
-        logger.info("🎰 Spin result: \(store.displayName) (Price: \(store.priceRange.displayText), Tags: \(store.tags.joined(separator: ", ")))")
+        let storeName = store.name.localized(for: appEnvironment.currentLanguage)
+        logger.info("🎰 Spin result: \(storeName) (Price: \(store.priceRange.displayText), Tags: \(store.tags.joined(separator: ", ")))")
 
         // Set selected store first, then show sheet after state commits
         selectedStore = store

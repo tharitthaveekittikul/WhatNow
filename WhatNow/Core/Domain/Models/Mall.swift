@@ -28,6 +28,16 @@ struct LocalizedName: Hashable, Sendable, Codable {
     var bestAvailable: String {
         th ?? en ?? "Unknown"
     }
+
+    /// Get localized name based on current language setting
+    func localized(for language: Language) -> String {
+        switch language {
+        case .thai:
+            return th ?? en ?? "Unknown"
+        case .english:
+            return en ?? th ?? "Unknown"
+        }
+    }
 }
 
 /// Mall index response

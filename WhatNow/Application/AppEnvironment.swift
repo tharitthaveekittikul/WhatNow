@@ -19,6 +19,8 @@ final class AppEnvironment: ObservableObject {
 
     // Language
     @Published var locale: Locale
+    @Published var currentLanguage: Language
+    @Published var languageDidChange = UUID() // For triggering view updates
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -33,6 +35,7 @@ final class AppEnvironment: ObservableObject {
         // Load initial language
         let savedLanguage = cont.settingsStore.language
         self.locale = savedLanguage.locale
+        self.currentLanguage = savedLanguage
 
         // Listen for language changes
         NotificationCenter.default.publisher(for: .languageDidChange)
@@ -40,6 +43,8 @@ final class AppEnvironment: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] language in
                 self?.locale = language.locale
+                self?.currentLanguage = language
+                self?.languageDidChange = UUID() // Trigger view refresh
             }
             .store(in: &cancellables)
     }

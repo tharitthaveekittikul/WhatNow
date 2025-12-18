@@ -28,7 +28,7 @@ struct StoreLocation: Hashable, Sendable, Codable {
     var displayText: String {
         var components: [String] = []
         if let floor = floor {
-            components.append("Floor \(floor)")
+            components.append(String(localized: "Floor \(floor)"))
         }
         if let zone = zone {
             components.append("Zone \(zone)")

@@ -16,8 +16,8 @@ enum Language: String, CaseIterable, Identifiable, Codable {
 
     var displayName: String {
         switch self {
-        case .thai: return String(localized: "Thai")
-        case .english: return String(localized: "English")
+        case .thai: return "Thai".localized(for: self)
+        case .english: return "English".localized(for: self)
         }
     }
 

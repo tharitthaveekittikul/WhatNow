@@ -9,6 +9,7 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var navigationPath = NavigationPath()
+    @EnvironmentObject private var appEnvironment: AppEnvironment
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -21,11 +22,11 @@ struct HomeView: View {
 
                     // Title
                     VStack(spacing: 8) {
-                        Text("WhatNow", bundle: .main, comment: "App name")
+                        Text("WhatNow".localized(for: appEnvironment.currentLanguage))
                             .font(.appLargeTitle)
                             .foregroundColor(.App.text)
 
-                        Text("Decision Helper", bundle: .main, comment: "App subtitle")
+                        Text("อะไรดี".localized(for: appEnvironment.currentLanguage))
                             .font(.appTitle3)
                             .foregroundColor(.App.textSecondary)
                     }
@@ -38,7 +39,7 @@ struct HomeView: View {
                             navigationPath.append(AppRoute.foodCategory)
                         } label: {
                             DecisionCardContent(
-                                title: DecisionCategory.food.title,
+                                title: DecisionCategory.food.title(for: appEnvironment.currentLanguage),
                                 emoji: DecisionCategory.food.emoji,
                                 accentColor: .App.accentWarm
                             )
@@ -49,7 +50,7 @@ struct HomeView: View {
                             navigationPath.append(AppRoute.activityCategory)
                         } label: {
                             DecisionCardContent(
-                                title: DecisionCategory.activity.title,
+                                title: DecisionCategory.activity.title(for: appEnvironment.currentLanguage),
                                 emoji: DecisionCategory.activity.emoji,
                                 accentColor: .App.accentSky
                             )
@@ -74,6 +75,7 @@ struct HomeView: View {
                     }
                 }
             }
+            .id(appEnvironment.languageDidChange) // Refresh when language changes
         }
     }
 
@@ -83,11 +85,11 @@ struct HomeView: View {
         case .foodCategory:
             FoodCategoryView()
         case .activityCategory:
-            Text("Activities Coming Soon!", bundle: .main, comment: "Placeholder message").font(.appTitle)
+            Text("Activities Coming Soon!".localized(for: appEnvironment.currentLanguage)).font(.appTitle)
         case .mallSelection:
             MallSelectionView()
         case .famousStores:
-            Text("Famous Stores Coming Soon!", bundle: .main, comment: "Placeholder message").font(.appTitle)
+            Text("Famous Stores Coming Soon!".localized(for: appEnvironment.currentLanguage)).font(.appTitle)
         case .spin(let mall):
             SpinView(mall: mall)
         case .settings:

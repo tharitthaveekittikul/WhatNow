@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct FoodCategoryView: View {
+    @EnvironmentObject private var appEnvironment: AppEnvironment
+
     var body: some View {
         ZStack {
             Color.App.background
@@ -17,7 +19,7 @@ struct FoodCategoryView: View {
                 Spacer()
 
                 // Title
-                Text("What to Eat?", bundle: .main, comment: "Food category title")
+                Text("What to Eat?".localized(for: appEnvironment.currentLanguage))
                     .font(.appLargeTitle)
                     .foregroundColor(.App.text)
 
@@ -27,7 +29,7 @@ struct FoodCategoryView: View {
                 VStack(spacing: 20) {
                     NavigationLink(value: AppRoute.mallSelection) {
                         DecisionCardContent(
-                            title: FoodSourceType.mall.title,
+                            title: FoodSourceType.mall.title(for: appEnvironment.currentLanguage),
                             emoji: FoodSourceType.mall.emoji,
                             accentColor: .App.accentLavender
                         )
@@ -36,7 +38,7 @@ struct FoodCategoryView: View {
 
                     NavigationLink(value: AppRoute.famousStores) {
                         DecisionCardContent(
-                            title: FoodSourceType.famous.title,
+                            title: FoodSourceType.famous.title(for: appEnvironment.currentLanguage),
                             emoji: FoodSourceType.famous.emoji,
                             accentColor: .App.accentWarm
                         )
@@ -48,8 +50,9 @@ struct FoodCategoryView: View {
                 Spacer()
             }
         }
-        .navigationTitle(String(localized: "What to Eat?"))
+        .navigationTitle("What to Eat?".localized(for: appEnvironment.currentLanguage))
         .navigationBarTitleDisplayMode(.inline)
+        .id(appEnvironment.languageDidChange) // Refresh when language changes
     }
 }
 

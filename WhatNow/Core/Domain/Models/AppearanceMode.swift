@@ -16,11 +16,11 @@ enum AppearanceMode: String, CaseIterable, Identifiable, Codable {
 
     var id: String { rawValue }
 
-    var displayName: String {
+    func displayName(for language: Language) -> String {
         switch self {
-        case .light: return String(localized: "Light")
-        case .dark: return String(localized: "Dark")
-        case .system: return String(localized: "System")
+        case .light: return "Light".localized(for: language)
+        case .dark: return "Dark".localized(for: language)
+        case .system: return "System".localized(for: language)
         }
     }
 

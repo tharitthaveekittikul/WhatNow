@@ -38,7 +38,7 @@ struct SettingsView: View {
                                     .foregroundColor(.App.text)
                                     .frame(width: 32)
 
-                                Text(mode.displayName)
+                                Text(mode.displayName(for: viewModel.selectedLanguage))
                                     .font(.appBody)
                                     .foregroundColor(.App.text)
 
@@ -53,7 +53,7 @@ struct SettingsView: View {
                         }
                     }
                 } header: {
-                    Text("Appearance", bundle: .main, comment: "Settings section header")
+                    Text("Appearance".localized(for: viewModel.selectedLanguage))
                         .font(.appHeadline)
                         .foregroundColor(.App.textSecondary)
                 }
@@ -86,7 +86,7 @@ struct SettingsView: View {
                         .padding(.vertical, 8)
                     }
                 } header: {
-                    Text("Language", bundle: .main, comment: "Settings section header")
+                    Text("Language".localized(for: viewModel.selectedLanguage))
                         .font(.appHeadline)
                         .foregroundColor(.App.textSecondary)
                 }
@@ -96,7 +96,7 @@ struct SettingsView: View {
                 Section {
                     // Version
                     HStack {
-                        Text("Version", bundle: .main, comment: "About section row")
+                        Text("Version".localized(for: viewModel.selectedLanguage))
                             .font(.appBody)
                             .foregroundColor(.App.text)
 
@@ -118,7 +118,7 @@ struct SettingsView: View {
                                 .foregroundColor(.App.text)
                                 .frame(width: 32)
 
-                            Text("Rate the App", bundle: .main, comment: "About section row")
+                            Text("Rate the App".localized(for: viewModel.selectedLanguage))
                                 .font(.appBody)
                                 .foregroundColor(.App.text)
 
@@ -141,7 +141,7 @@ struct SettingsView: View {
                                 .foregroundColor(.App.text)
                                 .frame(width: 32)
 
-                            Text("Privacy Policy", bundle: .main, comment: "About section row")
+                            Text("Privacy Policy".localized(for: viewModel.selectedLanguage))
                                 .font(.appBody)
                                 .foregroundColor(.App.text)
 
@@ -164,7 +164,7 @@ struct SettingsView: View {
                                 .foregroundColor(.App.text)
                                 .frame(width: 32)
 
-                            Text("Terms of Service", bundle: .main, comment: "About section row")
+                            Text("Terms of Service".localized(for: viewModel.selectedLanguage))
                                 .font(.appBody)
                                 .foregroundColor(.App.text)
 
@@ -188,11 +188,11 @@ struct SettingsView: View {
                                 .frame(width: 32)
 
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Contact Support", bundle: .main, comment: "About section row")
+                                Text("Contact Support".localized(for: viewModel.selectedLanguage))
                                     .font(.appBody)
                                     .foregroundColor(.App.text)
 
-                                Text("I will implement later", bundle: .main, comment: "About section placeholder")
+                                Text("I will implement later".localized(for: viewModel.selectedLanguage))
                                     .font(.appCaption)
                                     .foregroundColor(.App.textTertiary)
                             }
@@ -203,7 +203,7 @@ struct SettingsView: View {
                     }
                     .disabled(true)
                 } header: {
-                    Text("About", bundle: .main, comment: "Settings section header")
+                    Text("About".localized(for: viewModel.selectedLanguage))
                         .font(.appHeadline)
                         .foregroundColor(.App.textSecondary)
                 }
@@ -211,7 +211,7 @@ struct SettingsView: View {
             }
             .scrollContentBackground(.hidden)
         }
-        .navigationTitle(String(localized: "Settings"))
+        .navigationTitle("Settings".localized(for: viewModel.selectedLanguage))
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             // Inject appEnvironment on appear
@@ -264,7 +264,7 @@ private struct LanguagePickerView: View {
             }
             .scrollContentBackground(.hidden)
         }
-        .navigationTitle(String(localized: "Select Language"))
+        .navigationTitle("Select Language".localized(for: selectedLanguage))
         .navigationBarTitleDisplayMode(.inline)
     }
 }
