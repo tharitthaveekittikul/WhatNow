@@ -21,11 +21,11 @@ struct HomeView: View {
 
                     // Title
                     VStack(spacing: 8) {
-                        Text("WhatNow")
+                        Text("WhatNow", bundle: .main, comment: "App name")
                             .font(.appLargeTitle)
                             .foregroundColor(.App.text)
 
-                        Text("Decision Helper")
+                        Text("Decision Helper", bundle: .main, comment: "App subtitle")
                             .font(.appTitle3)
                             .foregroundColor(.App.textSecondary)
                     }
@@ -83,11 +83,11 @@ struct HomeView: View {
         case .foodCategory:
             FoodCategoryView()
         case .activityCategory:
-            Text("Activities Coming Soon!").font(.appTitle)
+            Text("Activities Coming Soon!", bundle: .main, comment: "Placeholder message").font(.appTitle)
         case .mallSelection:
             MallSelectionView()
         case .famousStores:
-            Text("Famous Stores Coming Soon!").font(.appTitle)
+            Text("Famous Stores Coming Soon!", bundle: .main, comment: "Placeholder message").font(.appTitle)
         case .spin(let mall):
             SpinView(mall: mall)
         case .settings:

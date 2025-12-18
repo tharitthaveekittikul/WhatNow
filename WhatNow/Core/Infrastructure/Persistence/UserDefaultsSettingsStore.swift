@@ -13,6 +13,7 @@ final class UserDefaultsSettingsStore: SettingsStore {
 
     private enum Keys {
         static let appearanceMode = "app.settings.appearanceMode"
+        static let language = "app.settings.language"
     }
 
     var appearanceMode: AppearanceMode {
@@ -27,4 +28,23 @@ final class UserDefaultsSettingsStore: SettingsStore {
             defaults.set(newValue.rawValue, forKey: Keys.appearanceMode)
         }
     }
+
+    var language: Language {
+        get {
+            guard let rawValue = defaults.string(forKey: Keys.language),
+                  let lang = Language(rawValue: rawValue) else {
+                return .thai  // Default to Thai
+            }
+            return lang
+        }
+        set {
+            defaults.set(newValue.rawValue, forKey: Keys.language)
+            // Post notification to update the environment
+            NotificationCenter.default.post(name: .languageDidChange, object: newValue)
+        }
+    }
+}
+
+extension Notification.Name {
+    static let languageDidChange = Notification.Name("app.languageDidChange")
 }

@@ -21,8 +21,13 @@ struct Mall: Identifiable, Hashable, Sendable, Codable {
 
 /// Localized name for entities
 struct LocalizedName: Hashable, Sendable, Codable {
-    let th: String
-    let en: String
+    let th: String?
+    let en: String?
+
+    /// Get the best available name (fallback to non-nil value)
+    var bestAvailable: String {
+        th ?? en ?? "Unknown"
+    }
 }
 
 /// Mall index response

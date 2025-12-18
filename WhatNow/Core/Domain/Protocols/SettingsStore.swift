@@ -10,4 +10,5 @@ import Foundation
 /// Protocol for persisting app settings
 protocol SettingsStore {
     var appearanceMode: AppearanceMode { get set }
+    var language: Language { get set }
 }

@@ -17,6 +17,11 @@ final class AppEnvironment: ObservableObject {
     // Appearance mode
     @Published var colorScheme: ColorScheme?
 
+    // Language
+    @Published var locale: Locale
+
+    private var cancellables = Set<AnyCancellable>()
+
     init(container: DependencyContainer? = nil) {
         let cont = container ?? DependencyContainer.shared
         self.container = cont
@@ -24,5 +29,18 @@ final class AppEnvironment: ObservableObject {
         // Load initial appearance mode
         let savedMode = cont.settingsStore.appearanceMode
         self.colorScheme = savedMode.colorScheme
+
+        // Load initial language
+        let savedLanguage = cont.settingsStore.language
+        self.locale = savedLanguage.locale
+
+        // Listen for language changes
+        NotificationCenter.default.publisher(for: .languageDidChange)
+            .compactMap { $0.object as? Language }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] language in
+                self?.locale = language.locale
+            }
+            .store(in: &cancellables)
     }
 }

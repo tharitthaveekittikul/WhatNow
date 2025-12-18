@@ -21,7 +21,7 @@ struct MallSelectionView: View {
                     .tint(.App.text)
             } else if let errorMessage = viewModel.errorMessage {
                 VStack(spacing: 16) {
-                    Text("Error")
+                    Text("Error", bundle: .main, comment: "Error title")
                         .font(.appTitle2)
                         .foregroundColor(.App.text)
 
@@ -30,7 +30,7 @@ struct MallSelectionView: View {
                         .foregroundColor(.App.textSecondary)
                         .multilineTextAlignment(.center)
 
-                    Button("Try Again") {
+                    Button(String(localized: "Try Again")) {
                         Task {
                             await viewModel.loadMalls()
                         }
@@ -42,7 +42,7 @@ struct MallSelectionView: View {
                 MallListView(malls: viewModel.malls)
             }
         }
-        .navigationTitle("Select Mall")
+        .navigationTitle(String(localized: "Select Mall"))
         .navigationBarTitleDisplayMode(.inline)
         .task {
             guard !hasAppeared else { return }
@@ -62,8 +62,8 @@ struct MallListView: View {
         } else {
             return malls.filter { mall in
                 mall.displayName.localizedCaseInsensitiveContains(searchText) ||
-                mall.name.th.localizedCaseInsensitiveContains(searchText) ||
-                mall.name.en.localizedCaseInsensitiveContains(searchText) ||
+                (mall.name.th?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                (mall.name.en?.localizedCaseInsensitiveContains(searchText) ?? false) ||
                 mall.city.localizedCaseInsensitiveContains(searchText)
             }
         }
@@ -84,10 +84,10 @@ struct MallListView: View {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 48))
                             .foregroundColor(.App.textTertiary)
-                        Text("No malls found")
+                        Text("No malls found", bundle: .main, comment: "Empty state message")
                             .font(.appHeadline)
                             .foregroundColor(.App.textSecondary)
-                        Text("Try a different search term")
+                        Text("Try a different search term", bundle: .main, comment: "Empty state hint")
                             .font(.appCallout)
                             .foregroundColor(.App.textTertiary)
                     }
@@ -97,7 +97,7 @@ struct MallListView: View {
             }
             .padding()
         }
-        .searchable(text: $searchText, prompt: "Search malls")
+        .searchable(text: $searchText, prompt: Text("Search malls", bundle: .main, comment: "Search prompt"))
     }
 }
 

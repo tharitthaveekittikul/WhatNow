@@ -19,8 +19,8 @@ struct StoreListView: View {
         } else {
             return stores.filter { store in
                 store.displayName.localizedCaseInsensitiveContains(searchText) ||
-                store.name.th.localizedCaseInsensitiveContains(searchText) ||
-                store.name.en.localizedCaseInsensitiveContains(searchText) ||
+                (store.name.th?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                (store.name.en?.localizedCaseInsensitiveContains(searchText) ?? false) ||
                 store.tags.contains { tag in
                     tag.replacingOccurrences(of: "_", with: " ")
                         .localizedCaseInsensitiveContains(searchText)
@@ -47,10 +47,10 @@ struct StoreListView: View {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 48))
                             .foregroundColor(.App.textTertiary)
-                        Text("No stores found")
+                        Text("No stores found", bundle: .main, comment: "Empty state message")
                             .font(.appHeadline)
                             .foregroundColor(.App.textSecondary)
-                        Text("Try a different search term")
+                        Text("Try a different search term", bundle: .main, comment: "Empty state hint")
                             .font(.appCallout)
                             .foregroundColor(.App.textTertiary)
                     }
@@ -62,9 +62,9 @@ struct StoreListView: View {
             .padding(.vertical, 16)
         }
         .background(Color.App.background.ignoresSafeArea())
-        .navigationTitle("All Stores")
+        .navigationTitle(String(localized: "All Stores"))
         .navigationBarTitleDisplayMode(.inline)
-        .searchable(text: $searchText, prompt: "Search stores")
+        .searchable(text: $searchText, prompt: Text("Search stores", bundle: .main, comment: "Search prompt"))
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: { dismiss() }) {
@@ -122,7 +122,7 @@ struct StoreListRow: View {
                             Image(systemName: "location.fill")
                                 .font(.appCaption2)
                                 .foregroundColor(.App.textSecondary)
-                            Text("Floor \(floor)")
+                            Text(String(localized: "Floor \(floor)"))
                                 .font(.appCallout)
                                 .foregroundColor(.App.textSecondary)
                         }

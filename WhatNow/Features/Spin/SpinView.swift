@@ -36,7 +36,7 @@ struct SpinView: View {
                     .tint(.App.text)
             } else if let errorMessage = viewModel.errorMessage {
                 VStack(spacing: 16) {
-                    Text("Error")
+                    Text("Error", bundle: .main, comment: "Error title")
                         .font(.appTitle2)
                         .foregroundColor(.App.text)
 
@@ -45,7 +45,7 @@ struct SpinView: View {
                         .foregroundColor(.App.textSecondary)
                         .multilineTextAlignment(.center)
 
-                    Button("Try Again") {
+                    Button(String(localized: "Try Again")) {
                         Task {
                             await viewModel.loadStores()
                         }
@@ -64,7 +64,7 @@ struct SpinView: View {
                                 .font(.appTitle2)
                                 .foregroundColor(.App.text)
 
-                            Text("\(viewModel.stores.count) stores")
+                            Text(String(localized: "\(viewModel.stores.count) stores"))
                                 .font(.appCallout)
                                 .foregroundColor(.App.textSecondary)
                         }
@@ -113,7 +113,7 @@ struct SpinView: View {
                                 )
 
                             // Text with smooth morph
-                            Text(isSpinning ? "Spinning…" : "SPIN")
+                            Text(isSpinning ? String(localized: "Spinning…") : String(localized: "SPIN"))
                                 .font(.appTitle3.weight(.bold))
                                 .contentTransition(.interpolate)
                         }
@@ -193,7 +193,7 @@ struct SpinView: View {
                 .padding(.top, 24)
             }
         }
-        .navigationTitle("Random Store")
+        .navigationTitle(String(localized: "Random Store"))
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showStoreDetail) {
             if let store = selectedStore {

@@ -63,7 +63,7 @@ struct StoreDetailView: View {
                     if let location = store.location {
                         InfoCard(
                             icon: "location.fill",
-                            title: "Location",
+                            title: String(localized: "Location"),
                             content: location.displayText
                         )
                     }
@@ -71,7 +71,7 @@ struct StoreDetailView: View {
                     // Mall card
                     InfoCard(
                         icon: "building.2.fill",
-                        title: "Mall",
+                        title: String(localized: "Mall"),
                         content: mall.displayName
                     )
 
@@ -82,7 +82,7 @@ struct StoreDetailView: View {
                                 Image(systemName: "tag.fill")
                                     .font(.system(size: 16))
                                     .foregroundColor(.App.accentSky)
-                                Text("Categories")
+                                Text("Categories", bundle: .main, comment: "Store detail section")
                                     .font(.appHeadline)
                                     .foregroundColor(.App.text)
                                 Spacer()
@@ -118,7 +118,7 @@ struct StoreDetailView: View {
                 VStack(spacing: 12) {
                     if let mapUrl = store.mapUrl, let url = URL(string: mapUrl) {
                         ActionButton(
-                            title: "Open in Maps",
+                            title: String(localized: "Open in Maps"),
                             icon: "map.fill",
                             color: Color(light: Color(hex: "4A90E2"), dark: Color(hex: "5BA3F5"))
                         ) {
@@ -128,7 +128,7 @@ struct StoreDetailView: View {
 
                     if let detailUrl = store.detailUrl, let url = URL(string: detailUrl) {
                         ActionButton(
-                            title: "View Details",
+                            title: String(localized: "View Details"),
                             icon: "info.circle.fill",
                             color: Color(light: Color(hex: "9B6FD6"), dark: Color(hex: "B494E5"))
                         ) {
@@ -141,7 +141,7 @@ struct StoreDetailView: View {
                             HStack(spacing: 8) {
                                 Image(systemName: "arrow.counterclockwise")
                                     .font(.system(size: 16, weight: .semibold))
-                                Text("Spin Again")
+                                Text("Spin Again", bundle: .main, comment: "Action button")
                                     .font(.appHeadline)
                             }
                             .foregroundColor(.App.text)
@@ -160,7 +160,7 @@ struct StoreDetailView: View {
             }
         }
         .background(Color.App.background.ignoresSafeArea())
-        .navigationTitle("Result")
+        .navigationTitle(String(localized: "Result"))
         .navigationBarTitleDisplayMode(.inline)
     }
 }

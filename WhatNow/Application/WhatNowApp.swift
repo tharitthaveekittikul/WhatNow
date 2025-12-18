@@ -16,6 +16,7 @@ struct WhatNowApp: App {
             HomeView()
                 .environmentObject(appEnvironment)
                 .preferredColorScheme(appEnvironment.colorScheme)
+                .environment(\.locale, appEnvironment.locale)
         }
     }
 }

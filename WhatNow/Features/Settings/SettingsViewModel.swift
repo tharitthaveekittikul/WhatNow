@@ -19,6 +19,18 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
+    @Published var selectedLanguage: Language {
+        didSet {
+            settingsStore.language = selectedLanguage
+        }
+    }
+
+    var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        return "\(version) (\(build))"
+    }
+
     private var settingsStore: SettingsStore
     var appEnvironment: AppEnvironment?
 
@@ -30,5 +42,6 @@ final class SettingsViewModel: ObservableObject {
         self.settingsStore = store
         self.appEnvironment = appEnvironment
         self.selectedAppearance = store.appearanceMode
+        self.selectedLanguage = store.language
     }
 }

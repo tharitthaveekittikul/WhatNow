@@ -17,7 +17,7 @@ struct FoodCategoryView: View {
                 Spacer()
 
                 // Title
-                Text("What to Eat?")
+                Text("What to Eat?", bundle: .main, comment: "Food category title")
                     .font(.appLargeTitle)
                     .foregroundColor(.App.text)
 
@@ -48,7 +48,7 @@ struct FoodCategoryView: View {
                 Spacer()
             }
         }
-        .navigationTitle("What to Eat?")
+        .navigationTitle(String(localized: "What to Eat?"))
         .navigationBarTitleDisplayMode(.inline)
     }
 }
