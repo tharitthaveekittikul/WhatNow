@@ -20,8 +20,15 @@ struct SpinView: View {
     @State private var showStoreDetail = false
     @State private var showStoreList = false
     @State private var shuffledStores: [Store] = []  // Shuffled stores for fair display
+    @State private var showFilterSheet = false  // Show filter bottom sheet
+    @State private var filter = StoreFilter()  // Active filters
 
     private let logger = DependencyContainer.shared.logger
+
+    // Filtered stores based on active filters
+    private var filteredStores: [Store] {
+        filter.apply(to: viewModel.stores)
+    }
 
     init(mall: Mall) {
         self.mall = mall
@@ -55,10 +62,38 @@ struct SpinView: View {
                     .buttonStyle(PrimaryButtonStyle())
                 }
                 .padding()
-            } else if !shuffledStores.isEmpty {
-                VStack(spacing: 32) {
-                    // Mall name with See All button
+            } else if !viewModel.stores.isEmpty {
+                VStack(spacing: 16) {
+                    // Mall name with Filter & See All buttons
                     HStack {
+                        // Filter button
+                        Button(action: { showFilterSheet = true }) {
+                            ZStack(alignment: .topTrailing) {
+                                Image(systemName: filter.isActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundColor(filter.isActive ? Color(light: Color(hex: "4A90E2"), dark: Color(hex: "5BA3F5")) : .App.text)
+                                    .frame(width: 44, height: 44)
+                                    .background(
+                                        Circle()
+                                            .fill(Color.App.surface)
+                                    )
+
+                                // Filter count badge
+                                if filter.activeFilterCount > 0 {
+                                    Circle()
+                                        .fill(Color(light: Color(hex: "4A90E2"), dark: Color(hex: "5BA3F5")))
+                                        .frame(width: 18, height: 18)
+                                        .overlay(
+                                            Text("\(filter.activeFilterCount)")
+                                                .font(.system(size: 10, weight: .bold))
+                                                .foregroundColor(.white)
+                                        )
+                                        .offset(x: 6, y: -6)
+                                }
+                            }
+                        }
+                        .disabled(isSpinning) // Disable during spin
+
                         Spacer()
 
                         VStack(spacing: 8) {
@@ -66,9 +101,16 @@ struct SpinView: View {
                                 .font(.appTitle2)
                                 .foregroundColor(.App.text)
 
-                            Text("\(viewModel.stores.count) stores".localized(for: appEnvironment.currentLanguage))
-                                .font(.appCallout)
-                                .foregroundColor(.App.textSecondary)
+                            // Show filtered count
+                            if filter.isActive {
+                                Text("\(shuffledStores.count) / \(viewModel.stores.count) stores".localized(for: appEnvironment.currentLanguage))
+                                    .font(.appCaption)
+                                    .foregroundColor(Color(light: Color(hex: "4A90E2"), dark: Color(hex: "5BA3F5")))
+                            } else {
+                                Text("\(viewModel.stores.count) stores".localized(for: appEnvironment.currentLanguage))
+                                    .font(.appCallout)
+                                    .foregroundColor(.App.textSecondary)
+                            }
                         }
 
                         Spacer()
@@ -84,19 +126,61 @@ struct SpinView: View {
                                         .fill(Color.App.surface)
                                 )
                         }
+                        .disabled(isSpinning) // Disable during spin
                     }
                     .padding(.horizontal, 24)
 
-                    Spacer()
+                    // Active filter chips
+                    FilterChipsView(
+                        filter: filter,
+                        onRemoveCategory: { category in
+                            guard !isSpinning else { return } // Prevent changes during spin
+                            filter.selectedCategories.remove(category)
+                            applyFiltersAndShuffle()
+                        },
+                        onRemovePriceRange: { priceRange in
+                            guard !isSpinning else { return } // Prevent changes during spin
+                            filter.selectedPriceRanges.remove(priceRange)
+                            applyFiltersAndShuffle()
+                        },
+                        onClearAll: {
+                            guard !isSpinning else { return } // Prevent changes during spin
+                            filter.clear()
+                            applyFiltersAndShuffle()
+                        }
+                    )
+                    .opacity(isSpinning ? 0.5 : 1.0) // Visual feedback when disabled
 
                     // Reel Picker with shuffled stores
-                    ReelPicker(
-                        items: shuffledStores,
-                        isSpinning: $isSpinning,
-                        reelIndex: $reelIndex
-                    )
+                    if !shuffledStores.isEmpty {
+                        ReelPicker(
+                            items: shuffledStores,
+                            isSpinning: $isSpinning,
+                            reelIndex: $reelIndex
+                        )
+                        .padding(.vertical, 16)
+                        .id(shuffledStores.map { $0.id }.joined()) // Force refresh when stores change
+                    } else {
+                        // No stores match filters
+                        VStack(spacing: 16) {
+                            Image(systemName: "exclamationmark.triangle")
+                                .font(.system(size: 48))
+                                .foregroundColor(.orange)
 
-                    Spacer()
+                            Text("No stores match filters".localized(for: appEnvironment.currentLanguage))
+                                .font(.appTitle3)
+                                .foregroundColor(.App.text)
+                                .multilineTextAlignment(.center)
+
+                            Text("Try adjusting your filters".localized(for: appEnvironment.currentLanguage))
+                                .font(.appCallout)
+                                .foregroundColor(.App.textSecondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: CGFloat(5) * 80 + 32) // Match ReelPicker height
+                    }
 
                     // Spin Button
                     Button(action: spin) {
@@ -209,26 +293,46 @@ struct SpinView: View {
                 StoreListView(stores: viewModel.stores, mall: mall)
             }
         }
+        .sheet(isPresented: $showFilterSheet) {
+            FilterSheet(stores: viewModel.stores, filter: $filter)
+        }
         .task {
             guard !hasAppeared else { return }
             hasAppeared = true
             await viewModel.loadStores()
         }
         .onChange(of: viewModel.stores) { newStores in
-            // Shuffle stores and set random starting position when stores load
+            // Apply filters, shuffle and set random starting position when stores load
             if !newStores.isEmpty {
-                shuffledStores = newStores.shuffled()
-                reelIndex = Int.random(in: 0..<shuffledStores.count)
+                applyFiltersAndShuffle()
             }
+        }
+        .onChange(of: filter) { _ in
+            // Re-apply filters when filter changes
+            applyFiltersAndShuffle()
         }
         .onAppear {
             // Re-shuffle and randomize position every time view appears
             if !viewModel.stores.isEmpty {
-                shuffledStores = viewModel.stores.shuffled()
-                reelIndex = Int.random(in: 0..<shuffledStores.count)
+                applyFiltersAndShuffle()
             }
         }
         .id(appEnvironment.languageDidChange) // Refresh when language changes
+    }
+
+    private func applyFiltersAndShuffle() {
+        let filtered = filteredStores
+
+        // Use animation to ensure smooth transition
+        withAnimation(.easeInOut(duration: 0.3)) {
+            if !filtered.isEmpty {
+                shuffledStores = filtered.shuffled()
+                reelIndex = Int.random(in: 0..<shuffledStores.count)
+            } else {
+                shuffledStores = []
+                reelIndex = 0
+            }
+        }
     }
 
     private func spin() {
@@ -300,12 +404,18 @@ struct SpinView: View {
         endFeedback.impactOccurred()
 
         // Calculate final selected store index safely from shuffled array
+        // IMPORTANT: Use the exact same calculation as ReelPicker's visual display
         let totalItems = shuffledStores.count
+        guard totalItems > 0 else {
+            logger.error("❌ No stores available after spin!")
+            return
+        }
+
         let finalIndex = ((reelIndex % totalItems) + totalItems) % totalItems
         let store = shuffledStores[finalIndex]
 
         let storeName = store.name.localized(for: appEnvironment.currentLanguage)
-        logger.info("🎰 Spin result: \(storeName) (Price: \(store.priceRange.displayText), Tags: \(store.tags.joined(separator: ", ")))")
+        logger.info("🎰 Spin result: \(storeName) (Index: \(finalIndex)/\(totalItems), Price: \(store.priceRange.displayText), Tags: \(store.tags.joined(separator: ", ")))")
 
         // Set selected store first, then show sheet after state commits
         selectedStore = store

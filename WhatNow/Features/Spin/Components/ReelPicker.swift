@@ -18,11 +18,27 @@ struct ReelPicker: View {
     private let itemHeight: CGFloat = 80
     private let visibleItems = 5
     private let centerIndex = 2
-    private let repeats = 2  // Large number to handle big reelIndex values
+    private let minTotalItems = 60  // Minimum items for good spin experience
 
-    // Base index is at the center of repeated items to prevent edge cases
+    // Calculate how many times to repeat items to reach at least minTotalItems
+    private var repeats: Int {
+        guard !items.isEmpty else { return 2 }
+        let calculated = max(2, Int(ceil(Double(minTotalItems) / Double(items.count))))
+        return calculated
+    }
+
+    // Total items after repeating
+    private var totalRepeatedItems: Int {
+        items.count * repeats
+    }
+
+    // Base index MUST be aligned to items.count for modulo arithmetic to work correctly
+    // This ensures: baseIndex % items.count == 0
     private var baseIndex: Int {
-        repeats * items.count / 2
+        guard !items.isEmpty else { return 0 }
+        let middle = totalRepeatedItems / 2
+        // Round down to nearest multiple of items.count
+        return (middle / items.count) * items.count
     }
 
     var body: some View {
@@ -38,8 +54,8 @@ struct ReelPicker: View {
                     // Add padding to allow proper scrolling
                     Color.clear.frame(height: CGFloat(centerIndex) * itemHeight)
 
-                    // Repeat items many times to handle large reelIndex values
-                    ForEach(0..<(items.count * repeats), id: \.self) { index in
+                    // Repeat items to reach at least minTotalItems for good spin experience
+                    ForEach(0..<totalRepeatedItems, id: \.self) { index in
                         let store = items[index % items.count]
                         reelItem(store: store, globalIndex: index)
                             .frame(height: itemHeight)
@@ -79,6 +95,10 @@ struct ReelPicker: View {
         .frame(height: CGFloat(visibleItems) * itemHeight)
         .padding()
         .onChange(of: reelIndex) { newValue in
+            updateScrollPosition()
+        }
+        .onChange(of: items.count) { _ in
+            // Force update when items change (e.g., after filtering)
             updateScrollPosition()
         }
         .onAppear {
