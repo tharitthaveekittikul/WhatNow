@@ -19,6 +19,7 @@ struct SpinView: View {
     @State private var selectedStore: Store?  // Store to show in detail view
     @State private var showStoreDetail = false
     @State private var showStoreList = false
+    @State private var shuffledStores: [Store] = []  // Shuffled stores for fair display
 
     private let logger = DependencyContainer.shared.logger
 
@@ -54,7 +55,7 @@ struct SpinView: View {
                     .buttonStyle(PrimaryButtonStyle())
                 }
                 .padding()
-            } else if !viewModel.stores.isEmpty {
+            } else if !shuffledStores.isEmpty {
                 VStack(spacing: 32) {
                     // Mall name with See All button
                     HStack {
@@ -88,9 +89,9 @@ struct SpinView: View {
 
                     Spacer()
 
-                    // Reel Picker
+                    // Reel Picker with shuffled stores
                     ReelPicker(
-                        items: viewModel.stores,
+                        items: shuffledStores,
                         isSpinning: $isSpinning,
                         reelIndex: $reelIndex
                     )
@@ -213,17 +214,31 @@ struct SpinView: View {
             hasAppeared = true
             await viewModel.loadStores()
         }
+        .onChange(of: viewModel.stores) { newStores in
+            // Shuffle stores and set random starting position when stores load
+            if !newStores.isEmpty {
+                shuffledStores = newStores.shuffled()
+                reelIndex = Int.random(in: 0..<shuffledStores.count)
+            }
+        }
+        .onAppear {
+            // Re-shuffle and randomize position every time view appears
+            if !viewModel.stores.isEmpty {
+                shuffledStores = viewModel.stores.shuffled()
+                reelIndex = Int.random(in: 0..<shuffledStores.count)
+            }
+        }
         .id(appEnvironment.languageDidChange) // Refresh when language changes
     }
 
     private func spin() {
-        guard !isSpinning, !viewModel.stores.isEmpty else { return }
+        guard !isSpinning, !shuffledStores.isEmpty else { return }
 
         isSpinning = true
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.prepare()
 
-        let totalItems = viewModel.stores.count
+        let totalItems = shuffledStores.count
 
         // Calculate target with large rotation for suspense
         // Randomize: 10-16 full spins + random position within items
@@ -284,10 +299,10 @@ struct SpinView: View {
         let endFeedback = UIImpactFeedbackGenerator(style: .heavy)
         endFeedback.impactOccurred()
 
-        // Calculate final selected store index safely
-        let totalItems = viewModel.stores.count
+        // Calculate final selected store index safely from shuffled array
+        let totalItems = shuffledStores.count
         let finalIndex = ((reelIndex % totalItems) + totalItems) % totalItems
-        let store = viewModel.stores[finalIndex]
+        let store = shuffledStores[finalIndex]
 
         let storeName = store.name.localized(for: appEnvironment.currentLanguage)
         logger.info("🎰 Spin result: \(storeName) (Price: \(store.priceRange.displayText), Tags: \(store.tags.joined(separator: ", ")))")
