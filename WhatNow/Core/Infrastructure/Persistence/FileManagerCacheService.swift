@@ -54,18 +54,37 @@ actor FileManagerCacheService: CacheService {
         )
     }
 
-    func load<T: Codable>(forKey key: String, type: T.Type) async throws
+    func load<T: Codable>(forKey key: String, type: T.Type, maxAge: TimeInterval? = nil) async throws
         -> CachedData<T>?
     {
         let fileURL = cacheDirectory.appendingPathComponent("\(key).json")
         let fm = FileManager.default
 
-        guard fm.fileExists(atPath: fileURL.path) else { return nil }
+        guard fm.fileExists(atPath: fileURL.path) else {
+            logger.debug("📭 Cache miss: \(key) (file not found)", category: .persistence)
+            return nil
+        }
 
         let data = try Data(contentsOf: fileURL)
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(CachedData<T>.self, from: data)
+        let cached = try decoder.decode(CachedData<T>.self, from: data)
+
+        // Check time-based expiration if maxAge is specified
+        if let maxAge = maxAge {
+            if cached.isExpired(maxAge: maxAge) {
+                let age = Date().timeIntervalSince(cached.cachedAt)
+                logger.info(
+                    "⏰ Cache expired: \(key) (age: \(Int(age))s, max: \(Int(maxAge))s)",
+                    category: .persistence
+                )
+                // Delete expired cache file
+                try? fm.removeItem(at: fileURL)
+                return nil
+            }
+        }
+
+        return cached
     }
 
     func isValid(forKey key: String, requiredVersion: Int) async -> Bool {

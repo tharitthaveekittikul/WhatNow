@@ -14,6 +14,30 @@ struct Store: Identifiable, Hashable, Sendable, Codable {
     let displayName: String
     let tags: [String]
     let priceRange: PriceRange
+    let location: StoreLocation?
+    let detailUrl: String?
+    let mapUrl: String?
+}
+
+/// Store location information
+struct StoreLocation: Hashable, Sendable, Codable {
+    let floor: String?
+    let zone: String?
+    let unit: String?
+
+    var displayText: String {
+        var components: [String] = []
+        if let floor = floor {
+            components.append("Floor \(floor)")
+        }
+        if let zone = zone {
+            components.append("Zone \(zone)")
+        }
+        if let unit = unit {
+            components.append("Unit \(unit)")
+        }
+        return components.isEmpty ? "Location not available" : components.joined(separator: " • ")
+    }
 }
 
 /// Price range for stores

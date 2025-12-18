@@ -22,6 +22,9 @@ actor CachedAPIPacksService: PacksService {
     private var isFetchingMalls = false
     private var fetchingMallIds = Set<String>()
 
+    // Cache configuration
+    private let cacheMaxAge: TimeInterval = 7 * 24 * 60 * 60  // 7 days
+
     // Cache keys
     private enum CacheKey {
         static let mallsIndex = "malls_index"
@@ -67,49 +70,29 @@ actor CachedAPIPacksService: PacksService {
         isFetchingMalls = true
         defer { isFetchingMalls = false }
 
-        // Try to load from cache first
+        // Try to load from cache first (with time-based expiration check)
+        // If cache exists and is not expired, use it directly
         if let cached = try? await loadFromCache(
             key: CacheKey.mallsIndex,
             type: MallsIndex.self
         ) {
             logger.info(
-                "📦 Cache hit: malls_index (v\(cached.version))",
+                "📦 Cache hit: malls_index (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - using cached data",
                 category: .networking
             )
             cachedMalls = cached.data.malls
             return cached.data.malls
         }
 
+        // Cache expired or doesn't exist - fetch from API
         logger.info(
-            "🌐 API Request: GET /v1/packs/malls/index",
+            "🌐 Cache miss or expired, fetching from API",
             category: .networking
         )
-
-        let url = URL(string: "\(baseURL)/v1/packs/malls/index")!
-        let (data, response) = try await session.data(from: url)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            logger.error("❌ Invalid response type", category: .networking)
-            throw APIError.invalidResponse
-        }
-
-        guard (200...299).contains(httpResponse.statusCode) else {
-            logger.error(
-                "❌ API Error: HTTP \(httpResponse.statusCode)",
-                category: .networking
-            )
-            throw APIError.httpError(httpResponse.statusCode)
-        }
+        let mallsIndex = try await fetchMallsFromAPI()
 
         logger.info(
-            "✅ API Response: HTTP \(httpResponse.statusCode), decoding...",
-            category: .networking
-        )
-
-        let mallsIndex = try decodeResponse(data: data, type: MallsIndex.self)
-
-        logger.info(
-            "✅ Decoded \(mallsIndex.malls.count) malls, caching...",
+            "✅ Decoded \(mallsIndex.malls.count) malls (v\(mallsIndex.version)), caching...",
             category: .networking
         )
         try? await saveToCache(
@@ -150,19 +133,74 @@ actor CachedAPIPacksService: PacksService {
         fetchingMallIds.insert(mallId)
         defer { fetchingMallIds.remove(mallId) }
 
-        // Try to load from cache first
+        // Try to load from cache first (with time-based expiration check)
+        // If cache exists and is not expired, use it directly
         if let cached = try? await loadFromCache(
             key: CacheKey.mall(mallId),
             type: MallPack.self
         ) {
             logger.info(
-                "📦 Cache hit: mall_\(mallId) (v\(cached.version))",
+                "📦 Cache hit: mall_\(mallId) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - using cached data",
                 category: .networking
             )
             cachedMallPacks[mallId] = cached.data
             return cached.data
         }
 
+        // Cache expired or doesn't exist - fetch from API
+        logger.info(
+            "🌐 Cache miss or expired, fetching from API",
+            category: .networking
+        )
+        let mallPack = try await fetchMallPackFromAPI(mallId: mallId)
+
+        logger.info(
+            "✅ Decoded \(mallPack.categories.count) categories (v\(mallPack.version)), caching...",
+            category: .networking
+        )
+        try? await saveToCache(
+            mallPack,
+            forKey: CacheKey.mall(mallId),
+            version: mallPack.version
+        )
+
+        cachedMallPacks[mallId] = mallPack
+        return mallPack
+    }
+
+    // MARK: - Private Helper Methods
+
+    private func fetchMallsFromAPI() async throws -> MallsIndex {
+        logger.info(
+            "🌐 API Request: GET /v1/packs/malls/index",
+            category: .networking
+        )
+
+        let url = URL(string: "\(baseURL)/v1/packs/malls/index")!
+        let (data, response) = try await session.data(from: url)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            logger.error("❌ Invalid response type", category: .networking)
+            throw APIError.invalidResponse
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            logger.error(
+                "❌ API Error: HTTP \(httpResponse.statusCode)",
+                category: .networking
+            )
+            throw APIError.httpError(httpResponse.statusCode)
+        }
+
+        logger.info(
+            "✅ API Response: HTTP \(httpResponse.statusCode), decoding...",
+            category: .networking
+        )
+
+        return try decodeResponse(data: data, type: MallsIndex.self)
+    }
+
+    private func fetchMallPackFromAPI(mallId: String) async throws -> MallPack {
         logger.info(
             "🌐 API Request: GET /v1/packs/malls/\(mallId)",
             category: .networking
@@ -190,19 +228,7 @@ actor CachedAPIPacksService: PacksService {
         )
 
         do {
-            let mallPack = try decodeResponse(data: data, type: MallPack.self)
-            logger.info(
-                "✅ Decoded \(mallPack.categories.count) categories, caching...",
-                category: .networking
-            )
-            try? await saveToCache(
-                mallPack,
-                forKey: CacheKey.mall(mallId),
-                version: mallPack.version
-            )
-
-            cachedMallPacks[mallId] = mallPack
-            return mallPack
+            return try decodeResponse(data: data, type: MallPack.self)
         } catch {
             logger.error(
                 "❌ Decoding failed: \(error)",
@@ -219,8 +245,6 @@ actor CachedAPIPacksService: PacksService {
         }
     }
 
-    // MARK: - Private Helper Methods
-
     private nonisolated func decodeResponse<T: Decodable>(
         data: Data,
         type: T.Type
@@ -234,7 +258,7 @@ actor CachedAPIPacksService: PacksService {
         key: String,
         type: T.Type
     ) async throws -> CachedData<T>? {
-        try await cache.load(forKey: key, type: type)
+        try await cache.load(forKey: key, type: type, maxAge: cacheMaxAge)
     }
 
     private func saveToCache<T: Codable>(

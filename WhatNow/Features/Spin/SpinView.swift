@@ -15,6 +15,9 @@ struct SpinView: View {
     @State private var reelIndex: Int = 0  // Monotonic index that increases indefinitely
     @State private var hasAppeared = false
     @State private var gradientRotation: Double = 0
+    @State private var selectedStore: Store?  // Store to show in detail view
+    @State private var showStoreDetail = false
+    @State private var showStoreList = false
 
     private let logger = DependencyContainer.shared.logger
 
@@ -52,16 +55,35 @@ struct SpinView: View {
                 .padding()
             } else if !viewModel.stores.isEmpty {
                 VStack(spacing: 32) {
-                    // Mall name
-                    VStack(spacing: 8) {
-                        Text(mall.displayName)
-                            .font(.appTitle2)
-                            .foregroundColor(.App.text)
+                    // Mall name with See All button
+                    HStack {
+                        Spacer()
 
-                        Text("\(viewModel.stores.count) stores")
-                            .font(.appCallout)
-                            .foregroundColor(.App.textSecondary)
+                        VStack(spacing: 8) {
+                            Text(mall.displayName)
+                                .font(.appTitle2)
+                                .foregroundColor(.App.text)
+
+                            Text("\(viewModel.stores.count) stores")
+                                .font(.appCallout)
+                                .foregroundColor(.App.textSecondary)
+                        }
+
+                        Spacer()
+
+                        // See All button
+                        Button(action: { showStoreList = true }) {
+                            Image(systemName: "list.bullet")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.App.text)
+                                .frame(width: 44, height: 44)
+                                .background(
+                                    Circle()
+                                        .fill(Color.App.surface)
+                                )
+                        }
                     }
+                    .padding(.horizontal, 24)
 
                     Spacer()
 
@@ -170,6 +192,18 @@ struct SpinView: View {
         }
         .navigationTitle("Random Store")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showStoreDetail) {
+            if let store = selectedStore {
+                NavigationStack {
+                    StoreDetailView(store: store, mall: mall)
+                }
+            }
+        }
+        .sheet(isPresented: $showStoreList) {
+            NavigationStack {
+                StoreListView(stores: viewModel.stores, mall: mall)
+            }
+        }
         .task {
             guard !hasAppeared else { return }
             hasAppeared = true
@@ -248,9 +282,15 @@ struct SpinView: View {
         // Calculate final selected store index safely
         let totalItems = viewModel.stores.count
         let finalIndex = ((reelIndex % totalItems) + totalItems) % totalItems
-        let selectedStore = viewModel.stores[finalIndex]
+        let store = viewModel.stores[finalIndex]
 
-        logger.info("🎰 Spin result: \(selectedStore.displayName) (Price: \(selectedStore.priceRange.displayText), Tags: \(selectedStore.tags.joined(separator: ", ")))")
+        logger.info("🎰 Spin result: \(store.displayName) (Price: \(store.priceRange.displayText), Tags: \(store.tags.joined(separator: ", ")))")
+
+        // Show detail view after a short delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            selectedStore = store
+            showStoreDetail = true
+        }
     }
 }
 

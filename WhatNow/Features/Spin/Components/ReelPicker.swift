@@ -150,21 +150,30 @@ struct ReelPicker: View {
                 name: LocalizedName(th: "ร้านอาหาร", en: "Restaurant"),
                 displayName: "Bonchon Chicken",
                 tags: ["korean"],
-                priceRange: .mid
+                priceRange: .mid,
+                location: nil,
+                detailUrl: nil,
+                mapUrl: nil
             ),
             Store(
                 id: "2",
                 name: LocalizedName(th: "ร้านอาหาร 2", en: "Restaurant 2"),
                 displayName: "After You",
                 tags: ["dessert"],
-                priceRange: .mid
+                priceRange: .mid,
+                location: nil,
+                detailUrl: nil,
+                mapUrl: nil
             ),
             Store(
                 id: "3",
                 name: LocalizedName(th: "ร้านอาหาร 3", en: "Restaurant 3"),
                 displayName: "Fuji",
                 tags: ["japanese"],
-                priceRange: .premium
+                priceRange: .premium,
+                location: nil,
+                detailUrl: nil,
+                mapUrl: nil
             )
         ],
         isSpinning: .constant(false),
