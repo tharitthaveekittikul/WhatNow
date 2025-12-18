@@ -25,30 +25,39 @@ struct ReelPicker: View {
                 .fill(Color.App.surface)
                 .shadow(color: Color.black.opacity(0.1), radius: 20, x: 0, y: 10)
 
-            // Scrolling reel
-            GeometryReader { geo in
+            // Scrolling reel viewport
+            GeometryReader { geometry in
                 VStack(spacing: 0) {
+                    // Add padding to allow proper scrolling
+                    Color.clear.frame(height: CGFloat(centerIndex) * itemHeight)
+
                     // Repeat items for infinite scroll effect
                     ForEach(0..<(items.count * 3), id: \.self) { index in
                         let store = items[index % items.count]
                         reelItem(store: store, globalIndex: index)
                             .frame(height: itemHeight)
                     }
+
+                    // Bottom padding
+                    Color.clear.frame(height: CGFloat(visibleItems - centerIndex - 1) * itemHeight)
                 }
+                .frame(width: geometry.size.width)
                 .offset(y: scrollPosition)
-                .mask(
-                    LinearGradient(
-                        gradient: Gradient(stops: [
-                            .init(color: .clear, location: 0),
-                            .init(color: .black, location: 0.15),
-                            .init(color: .black, location: 0.85),
-                            .init(color: .clear, location: 1.0)
-                        ]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
             }
+            .frame(height: CGFloat(visibleItems) * itemHeight)
+            .clipped()
+            .mask(
+                LinearGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: .clear, location: 0),
+                        .init(color: .black, location: 0.2),
+                        .init(color: .black, location: 0.8),
+                        .init(color: .clear, location: 1.0)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
 
             // Center highlight bar
             Rectangle()
@@ -63,25 +72,30 @@ struct ReelPicker: View {
         .frame(height: CGFloat(visibleItems) * itemHeight)
         .padding()
         .onChange(of: selectedIndex) { newValue in
-            updateScrollPosition(animated: isSpinning)
+            updateScrollPosition()
         }
         .onAppear {
-            updateScrollPosition(animated: false)
+            updateScrollPosition()
         }
     }
 
-    private func updateScrollPosition(animated: Bool) {
+    private func updateScrollPosition() {
         // Calculate the scroll position to center the selected item
-        // Start from middle of repeated items (items.count)
-        let targetPosition = CGFloat(items.count + selectedIndex) * itemHeight
-        let centerOffset = CGFloat(centerIndex) * itemHeight
-        let newPosition = -(targetPosition - centerOffset)
+        // Account for top padding (centerIndex * itemHeight)
+        // Items start at position centerIndex * itemHeight
+        // We want item at index (items.count + selectedIndex) centered
+        let itemPosition = (CGFloat(centerIndex) + CGFloat(items.count + selectedIndex)) * itemHeight
+        let centerPosition = CGFloat(centerIndex) * itemHeight
+        let newPosition = -(itemPosition - centerPosition)
 
-        if animated {
-            withAnimation(.easeOut(duration: 2.5)) {
+        // Animate scrollPosition changes
+        if isSpinning {
+            // During spin: use spring animation for smooth slot-machine feel
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 scrollPosition = newPosition
             }
         } else {
+            // Initial setup: no animation
             scrollPosition = newPosition
         }
     }
@@ -89,7 +103,8 @@ struct ReelPicker: View {
     @ViewBuilder
     private func reelItem(store: Store, globalIndex: Int) -> some View {
         // Calculate distance from center for scale/opacity effects
-        let itemPosition = CGFloat(globalIndex) * itemHeight
+        // Account for top padding when calculating position
+        let itemPosition = (CGFloat(centerIndex) + CGFloat(globalIndex)) * itemHeight
         let centerPosition = -scrollPosition + CGFloat(centerIndex) * itemHeight
         let distance = abs(itemPosition - centerPosition) / itemHeight
 
@@ -100,8 +115,10 @@ struct ReelPicker: View {
             Text(store.displayName)
                 .font(.appHeadline)
                 .foregroundColor(.App.text)
-                .lineLimit(1)
+                .lineLimit(2)
                 .truncationMode(.tail)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(0.8)
 
             Text(store.priceRange.displayText)
                 .font(.appCaption)
@@ -109,6 +126,7 @@ struct ReelPicker: View {
         }
         .frame(maxWidth: .infinity, alignment: .center)
         .frame(height: itemHeight)
+        .padding(.horizontal, 24)
         .scaleEffect(scale)
         .opacity(opacity)
     }

@@ -16,6 +16,8 @@ struct SpinView: View {
     @State private var spinOffset: CGFloat = 0
     @State private var hasAppeared = false
 
+    private let logger = DependencyContainer.shared.logger
+
     init(mall: Mall) {
         self.mall = mall
         _viewModel = StateObject(wrappedValue: SpinViewModel(mall: mall))
@@ -127,41 +129,57 @@ struct SpinView: View {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.prepare()
 
-        // Calculate target: minimum 2 full rotations + random position
-        let minSpins = 2
+        // Calculate target: minimum 3 full rotations + random position
+        let minSpins = 3
         let totalItems = viewModel.stores.count
         let randomExtra = Int.random(in: 0..<totalItems)
         let targetIndex = (selectedIndex + (totalItems * minSpins) + randomExtra) % totalItems
 
-        // Phase 1: Fast acceleration (0.2s) - spin 3 items
+        // Phase 1: Fast acceleration (0.3s) - quick start
         generator.impactOccurred()
-        withAnimation(.easeIn(duration: 0.2)) {
-            selectedIndex = (selectedIndex + 3) % totalItems
-        }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            // Phase 2: Fast constant speed (1.5s) - spin through most items
-            generator.impactOccurred()
-            let midPoint = (selectedIndex + totalItems + (totalItems / 2)) % totalItems
-            withAnimation(.linear(duration: 1.5)) {
-                selectedIndex = midPoint
+        if #available(iOS 17.0, *) {
+            // iOS 17+: Use animation completion callbacks
+            withAnimation(.easeIn(duration: 0.3)) {
+                selectedIndex = (selectedIndex + 4) % totalItems
+            } completion: {
+                // Phase 2: Smooth deceleration (2.8s) - long smooth slowdown
+                generator.impactOccurred()
+                withAnimation(.timingCurve(0.22, 0.61, 0.36, 1.0, duration: 2.8)) {
+                    selectedIndex = targetIndex
+                } completion: {
+                    onSpinComplete(targetIndex: targetIndex)
+                }
+            }
+        } else {
+            // iOS 16: Fallback to DispatchQueue
+            withAnimation(.easeIn(duration: 0.3)) {
+                selectedIndex = (selectedIndex + 4) % totalItems
             }
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                // Phase 3: Deceleration (2.0s) - ease to final position
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 generator.impactOccurred()
-                withAnimation(.timingCurve(0.17, 0.84, 0.44, 1.0, duration: 2.0)) {
+                withAnimation(.timingCurve(0.22, 0.61, 0.36, 1.0, duration: 2.8)) {
                     selectedIndex = targetIndex
                 }
 
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    isSpinning = false
-                    // Strong haptic at the end
-                    let endFeedback = UIImpactFeedbackGenerator(style: .heavy)
-                    endFeedback.impactOccurred()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
+                    self.onSpinComplete(targetIndex: targetIndex)
                 }
             }
         }
+    }
+
+    private func onSpinComplete(targetIndex: Int) {
+        isSpinning = false
+
+        // Strong haptic at the end
+        let endFeedback = UIImpactFeedbackGenerator(style: .heavy)
+        endFeedback.impactOccurred()
+
+        // Log the selected store
+        let selectedStore = viewModel.stores[targetIndex]
+        logger.info("🎰 Spin result: \(selectedStore.displayName) (Price: \(selectedStore.priceRange.displayText), Tags: \(selectedStore.tags.joined(separator: ", ")))")
     }
 }
 
