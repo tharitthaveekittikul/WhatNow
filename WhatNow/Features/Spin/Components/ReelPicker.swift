@@ -10,13 +10,19 @@ import SwiftUI
 struct ReelPicker: View {
     let items: [Store]
     @Binding var isSpinning: Bool
-    @Binding var selectedIndex: Int
+    @Binding var reelIndex: Int
 
     // Animation state
     @State private var scrollPosition: CGFloat = 0
     private let itemHeight: CGFloat = 80
     private let visibleItems = 5
     private let centerIndex = 2
+    private let repeats = 2  // Large number to handle big reelIndex values
+
+    // Base index is at the center of repeated items to prevent edge cases
+    private var baseIndex: Int {
+        repeats * items.count / 2
+    }
 
     var body: some View {
         ZStack {
@@ -31,8 +37,8 @@ struct ReelPicker: View {
                     // Add padding to allow proper scrolling
                     Color.clear.frame(height: CGFloat(centerIndex) * itemHeight)
 
-                    // Repeat items for infinite scroll effect
-                    ForEach(0..<(items.count * 3), id: \.self) { index in
+                    // Repeat items many times to handle large reelIndex values
+                    ForEach(0..<(items.count * repeats), id: \.self) { index in
                         let store = items[index % items.count]
                         reelItem(store: store, globalIndex: index)
                             .frame(height: itemHeight)
@@ -71,7 +77,7 @@ struct ReelPicker: View {
         }
         .frame(height: CGFloat(visibleItems) * itemHeight)
         .padding()
-        .onChange(of: selectedIndex) { newValue in
+        .onChange(of: reelIndex) { newValue in
             updateScrollPosition()
         }
         .onAppear {
@@ -80,11 +86,15 @@ struct ReelPicker: View {
     }
 
     private func updateScrollPosition() {
-        // Calculate the scroll position to center the selected item
+        // Calculate the scroll position to center the current reel item
         // Account for top padding (centerIndex * itemHeight)
-        // Items start at position centerIndex * itemHeight
-        // We want item at index (items.count + selectedIndex) centered
-        let itemPosition = (CGFloat(centerIndex) + CGFloat(items.count + selectedIndex)) * itemHeight
+
+        // Map reelIndex to actual display position using baseIndex
+        // This keeps us in the middle of the repeated items array
+        let displayIndex = baseIndex + (reelIndex % items.count)
+
+        // Calculate scroll offset
+        let itemPosition = (CGFloat(centerIndex) + CGFloat(displayIndex)) * itemHeight
         let centerPosition = CGFloat(centerIndex) * itemHeight
         let newPosition = -(itemPosition - centerPosition)
 
@@ -158,7 +168,7 @@ struct ReelPicker: View {
             )
         ],
         isSpinning: .constant(false),
-        selectedIndex: .constant(0)
+        reelIndex: .constant(0)
     )
     .background(Color.App.background)
 }
