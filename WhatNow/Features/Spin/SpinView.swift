@@ -127,10 +127,13 @@ struct SpinView: View {
                                     .fill(
                                         AngularGradient(
                                             gradient: Gradient(colors: isSpinning ? [
-                                                Color.App.accentSky,
-                                                Color.App.accentLavender,
-                                                Color.App.accentWarm,
-                                                Color.App.accentSky
+                                                Color(hex: "FF6B6B"), // Red
+                                                Color(hex: "FFD93D"), // Yellow
+                                                Color(hex: "6BCF7F"), // Green
+                                                Color(hex: "4ECDC4"), // Cyan
+                                                Color(hex: "4A90E2"), // Blue
+                                                Color(hex: "9B6FD6"), // Purple
+                                                Color(hex: "FF6B6B")  // Red (loop)
                                             ] : [
                                                 Color.App.text,
                                                 Color.App.textSecondary,
@@ -148,24 +151,24 @@ struct SpinView: View {
                                             LinearGradient(
                                                 gradient: Gradient(colors: [
                                                     Color.white.opacity(0),
-                                                    Color.white.opacity(0.15),
+                                                    Color.white.opacity(0.25),
                                                     Color.white.opacity(0)
                                                 ]),
                                                 startPoint: .leading,
                                                 endPoint: .trailing
                                             )
                                         )
-                                        .blur(radius: 8)
+                                        .blur(radius: 10)
                                         .hueRotation(.degrees(gradientRotation / 2))
                                 }
                             }
                         )
                         // Glow effect
                         .shadow(
-                            color: isSpinning ? Color.App.accentSky.opacity(0.5) : Color.black.opacity(0.2),
-                            radius: isSpinning ? 24 : 10,
+                            color: isSpinning ? Color(hex: "9B6FD6").opacity(0.5) : Color.black.opacity(0.2),
+                            radius: isSpinning ? 28 : 10,
                             x: 0,
-                            y: isSpinning ? 8 : 5
+                            y: isSpinning ? 10 : 5
                         )
                         .scaleEffect(isSpinning ? 0.98 : 1.0)
                         .animation(.spring(response: 0.5, dampingFraction: 0.75), value: isSpinning)
@@ -195,7 +198,7 @@ struct SpinView: View {
         .sheet(isPresented: $showStoreDetail) {
             if let store = selectedStore {
                 NavigationStack {
-                    StoreDetailView(store: store, mall: mall)
+                    StoreDetailView(store: store, mall: mall, showSpinAgain: true)
                 }
             }
         }
@@ -286,9 +289,10 @@ struct SpinView: View {
 
         logger.info("🎰 Spin result: \(store.displayName) (Price: \(store.priceRange.displayText), Tags: \(store.tags.joined(separator: ", ")))")
 
-        // Show detail view after a short delay
+        // Set selected store first, then show sheet after state commits
+        selectedStore = store
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            selectedStore = store
             showStoreDetail = true
         }
     }

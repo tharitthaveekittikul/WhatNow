@@ -11,17 +11,51 @@ struct StoreListView: View {
     let stores: [Store]
     let mall: Mall
     @Environment(\.dismiss) private var dismiss
+    @State private var searchText = ""
+
+    private var filteredStores: [Store] {
+        if searchText.isEmpty {
+            return stores
+        } else {
+            return stores.filter { store in
+                store.displayName.localizedCaseInsensitiveContains(searchText) ||
+                store.name.th.localizedCaseInsensitiveContains(searchText) ||
+                store.name.en.localizedCaseInsensitiveContains(searchText) ||
+                store.tags.contains { tag in
+                    tag.replacingOccurrences(of: "_", with: " ")
+                        .localizedCaseInsensitiveContains(searchText)
+                } ||
+                store.priceRange.displayText.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
 
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                ForEach(stores) { store in
+                ForEach(filteredStores) { store in
                     NavigationLink {
                         StoreDetailView(store: store, mall: mall)
                     } label: {
                         StoreListRow(store: store)
                     }
                     .buttonStyle(PlainButtonStyle())
+                }
+
+                if filteredStores.isEmpty && !searchText.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 48))
+                            .foregroundColor(.App.textTertiary)
+                        Text("No stores found")
+                            .font(.appHeadline)
+                            .foregroundColor(.App.textSecondary)
+                        Text("Try a different search term")
+                            .font(.appCallout)
+                            .foregroundColor(.App.textTertiary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 60)
                 }
             }
             .padding(.horizontal, 16)
@@ -30,6 +64,16 @@ struct StoreListView: View {
         .background(Color.App.background.ignoresSafeArea())
         .navigationTitle("All Stores")
         .navigationBarTitleDisplayMode(.inline)
+        .searchable(text: $searchText, prompt: "Search stores")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.App.textSecondary)
+                }
+            }
+        }
     }
 }
 
@@ -37,79 +81,97 @@ struct StoreListRow: View {
     let store: Store
 
     var body: some View {
-        HStack(spacing: 16) {
-            // Icon
+        HStack(spacing: 14) {
+            // Icon with gradient
             ZStack {
-                Circle()
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .fill(
                         LinearGradient(
                             gradient: Gradient(colors: [
-                                Color.App.accentSky.opacity(0.2),
-                                Color.App.accentLavender.opacity(0.2)
+                                Color.App.accentSky.opacity(0.25),
+                                Color.App.accentLavender.opacity(0.25)
                             ]),
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: 56, height: 56)
+                    .frame(width: 64, height: 64)
 
-                Image(systemName: "fork.knife")
-                    .font(.system(size: 24))
-                    .foregroundColor(.App.text.opacity(0.6))
+                Image(systemName: "fork.knife.circle.fill")
+                    .font(.system(size: 28, weight: .medium))
+                    .foregroundColor(.App.text.opacity(0.7))
+                    .symbolRenderingMode(.hierarchical)
             }
 
             // Store info
-            VStack(alignment: .leading, spacing: 6) {
-                Text(store.displayName)
-                    .font(.appHeadline)
-                    .foregroundColor(.App.text)
-                    .lineLimit(1)
-
+            VStack(alignment: .leading, spacing: 8) {
+                // Name and price
                 HStack(spacing: 8) {
-                    Text(store.priceRange.displayText)
-                        .font(.appCaption)
-                        .foregroundColor(.App.textSecondary)
+                    Text(store.displayName)
+                        .font(.appHeadline)
+                        .foregroundColor(.App.text)
+                        .lineLimit(1)
 
-                    if let location = store.location?.floor {
-                        Text("•")
-                            .foregroundColor(.App.textSecondary.opacity(0.5))
-                        Text("Floor \(location)")
-                            .font(.appCaption)
-                            .foregroundColor(.App.textSecondary)
-                    }
+                    Spacer()
                 }
+
+                HStack {
+                    // Location
+                    if let floor = store.location?.floor {
+                        HStack(spacing: 6) {
+                            Image(systemName: "location.fill")
+                                .font(.appCaption2)
+                                .foregroundColor(.App.textSecondary)
+                            Text("Floor \(floor)")
+                                .font(.appCallout)
+                                .foregroundColor(.App.textSecondary)
+                        }
+                    }
+                    
+                    Divider()
+                    
+                    Text("\(store.priceRange.displayText)")
+                        .font(.appCallout)
+                        .foregroundColor(.App.textSecondary.opacity(0.8))
+                        .fontWeight(.medium)
+                }
+                
 
                 // Tags
                 if !store.tags.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 6) {
-                            ForEach(store.tags.prefix(3), id: \.self) { tag in
-                                Text(tag.replacingOccurrences(of: "_", with: " ").capitalized)
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(.App.text.opacity(0.7))
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(
-                                        Capsule()
-                                            .fill(Color.App.accentSky.opacity(0.15))
-                                    )
-                            }
+                    HStack(spacing: 6) {
+                        ForEach(store.tags.prefix(2), id: \.self) { tag in
+                            Text(tag.replacingOccurrences(of: "_", with: " ").capitalized)
+                                .font(.appCaption2)
+                                .foregroundColor(.App.textSecondary)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.App.accentSky.opacity(0.15))
+                                )
+                        }
+
+                        if store.tags.count > 2 {
+                            Text("+\(store.tags.count - 2)")
+                                .font(.appCaption2)
+                                .foregroundColor(.App.textTertiary)
                         }
                     }
                 }
             }
 
-            Spacer()
-
             // Chevron
             Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.App.textSecondary.opacity(0.5))
+                .font(.appCallout)
+                .fontWeight(.semibold)
+                .foregroundColor(.App.textTertiary)
         }
-        .padding(16)
+        .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(Color.App.surface)
+                .shadow(color: Color.App.text.opacity(0.04), radius: 8, x: 0, y: 2)
         )
     }
 }

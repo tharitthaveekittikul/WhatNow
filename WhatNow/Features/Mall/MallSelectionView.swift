@@ -54,19 +54,50 @@ struct MallSelectionView: View {
 
 struct MallListView: View {
     let malls: [Mall]
+    @State private var searchText = ""
+
+    private var filteredMalls: [Mall] {
+        if searchText.isEmpty {
+            return malls
+        } else {
+            return malls.filter { mall in
+                mall.displayName.localizedCaseInsensitiveContains(searchText) ||
+                mall.name.th.localizedCaseInsensitiveContains(searchText) ||
+                mall.name.en.localizedCaseInsensitiveContains(searchText) ||
+                mall.city.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
 
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                ForEach(malls) { mall in
+                ForEach(filteredMalls) { mall in
                     NavigationLink(value: AppRoute.spin(mall: mall)) {
                         MallCardContent(mall: mall)
                     }
                     .buttonStyle(CardButtonStyle())
                 }
+
+                if filteredMalls.isEmpty && !searchText.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 48))
+                            .foregroundColor(.App.textTertiary)
+                        Text("No malls found")
+                            .font(.appHeadline)
+                            .foregroundColor(.App.textSecondary)
+                        Text("Try a different search term")
+                            .font(.appCallout)
+                            .foregroundColor(.App.textTertiary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 60)
+                }
             }
             .padding()
         }
+        .searchable(text: $searchText, prompt: "Search malls")
     }
 }
 
