@@ -168,6 +168,215 @@ actor CachedAPIPacksService: PacksService {
         return mallPack
     }
 
+    // MARK: - Famous Stores
+
+    func fetchFamousStores() async throws -> FamousStoresPack {
+        let key = "famous_stores"
+
+        // Check disk cache first
+        if let cached = try? await loadFromCache(key: key, type: FamousStoresPack.self) {
+            logger.info(
+                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - using cached data",
+                category: .networking
+            )
+            return cached.data
+        }
+
+        // Fetch from API
+        logger.info("🌐 API Request: GET /v1/packs/food/famous-stores", category: .networking)
+
+        do {
+            let url = URL(string: "\(baseURL)/v1/packs/food/famous-stores")!
+            let (data, response) = try await session.data(from: url)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw APIError.invalidResponse
+            }
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                throw APIError.parse(from: data, statusCode: httpResponse.statusCode)
+            }
+
+            let pack = try decodeResponse(data: data, type: FamousStoresPack.self)
+            logger.info("✅ Decoded \(pack.items.count) famous stores (v\(pack.version)), caching...", category: .networking)
+            try? await saveToCache(pack, forKey: key, version: pack.version)
+            return pack
+        } catch let error as APIError {
+            throw error
+        } catch let error as DecodingError {
+            logger.error("❌ Decoding failed: \(error)", category: .networking)
+            throw APIError.decodingError(error)
+        } catch {
+            logger.error("❌ Network error: \(error)", category: .networking)
+            throw APIError.networkError(error)
+        }
+    }
+
+    // MARK: - Activities
+
+    func fetchActivityCategories() async throws -> ActivitiesIndex {
+        let key = "activities_index"
+
+        // Check disk cache first
+        if let cached = try? await loadFromCache(key: key, type: ActivitiesIndex.self) {
+            logger.info(
+                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - using cached data",
+                category: .networking
+            )
+            return cached.data
+        }
+
+        // Fetch from API
+        logger.info("🌐 API Request: GET /v1/packs/activities/index", category: .networking)
+        let index = try await fetchFromAPI(ActivitiesIndex.self, endpoint: "/v1/packs/activities/index")
+        logger.info("✅ Decoded \(index.categories.count) activity categories (v\(index.version)), caching...", category: .networking)
+        try? await saveToCache(index, forKey: key, version: index.version)
+        return index
+    }
+
+    func fetchActivities(categoryId: String) async throws -> ActivityPack {
+        let key = "activity_\(categoryId)"
+
+        // Check disk cache first
+        if let cached = try? await loadFromCache(key: key, type: ActivityPack.self) {
+            logger.info(
+                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - using cached data",
+                category: .networking
+            )
+            return cached.data
+        }
+
+        // Fetch from API
+        logger.info("🌐 API Request: GET /v1/packs/activities/\(categoryId)", category: .networking)
+        let pack = try await fetchFromAPI(ActivityPack.self, endpoint: "/v1/packs/activities/\(categoryId)")
+        logger.info("✅ Decoded \(pack.items.count) activities (v\(pack.version)), caching...", category: .networking)
+        try? await saveToCache(pack, forKey: key, version: pack.version)
+        return pack
+    }
+
+    // MARK: - Configuration & Metadata
+
+    func fetchAppConfig() async throws -> AppConfig {
+        let key = "app_config"
+
+        // Check disk cache first
+        if let cached = try? await loadFromCache(key: key, type: AppConfig.self) {
+            logger.info(
+                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - using cached data",
+                category: .networking
+            )
+            return cached.data
+        }
+
+        // Fetch from API
+        logger.info("🌐 API Request: GET /v1/packs/config", category: .networking)
+        let config = try await fetchFromAPI(AppConfig.self, endpoint: "/v1/packs/config")
+        logger.info("✅ Decoded app config (v\(config.version)), caching...", category: .networking)
+        try? await saveToCache(config, forKey: key, version: config.version)
+        return config
+    }
+
+    func fetchPriceRanges() async throws -> PriceRangesPack {
+        let key = "price_ranges"
+
+        // Check disk cache first
+        if let cached = try? await loadFromCache(key: key, type: PriceRangesPack.self) {
+            logger.info(
+                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - using cached data",
+                category: .networking
+            )
+            return cached.data
+        }
+
+        // Fetch from API
+        logger.info("🌐 API Request: GET /v1/packs/meta/price-ranges", category: .networking)
+        let pack = try await fetchFromAPI(PriceRangesPack.self, endpoint: "/v1/packs/meta/price-ranges")
+        logger.info("✅ Decoded \(pack.ranges.count) price ranges (v\(pack.version)), caching...", category: .networking)
+        try? await saveToCache(pack, forKey: key, version: pack.version)
+        return pack
+    }
+
+    func fetchTags() async throws -> TagsPack {
+        let key = "tags"
+
+        // Check disk cache first
+        if let cached = try? await loadFromCache(key: key, type: TagsPack.self) {
+            logger.info(
+                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - using cached data",
+                category: .networking
+            )
+            return cached.data
+        }
+
+        // Fetch from API
+        logger.info("🌐 API Request: GET /v1/packs/meta/tags", category: .networking)
+        let pack = try await fetchFromAPI(TagsPack.self, endpoint: "/v1/packs/meta/tags")
+        logger.info("✅ Decoded tags (v\(pack.version)), caching...", category: .networking)
+        try? await saveToCache(pack, forKey: key, version: pack.version)
+        return pack
+    }
+
+    func fetchCatalog() async throws -> CatalogPack {
+        let key = "catalog"
+
+        // Check disk cache first
+        if let cached = try? await loadFromCache(key: key, type: CatalogPack.self) {
+            logger.info(
+                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - using cached data",
+                category: .networking
+            )
+            return cached.data
+        }
+
+        // Fetch from API
+        logger.info("🌐 API Request: GET /v1/packs/catalog", category: .networking)
+        let catalog = try await fetchFromAPI(CatalogPack.self, endpoint: "/v1/packs/catalog")
+        logger.info("✅ Decoded catalog (v\(catalog.version)), caching...", category: .networking)
+        try? await saveToCache(catalog, forKey: key, version: catalog.version)
+        return catalog
+    }
+
+    // MARK: - Private Helper Methods
+
+    /// Generic fetch from API with error handling
+    private func fetchFromAPI<T: Decodable>(_ type: T.Type, endpoint: String) async throws -> T {
+        do {
+            let url = URL(string: "\(baseURL)\(endpoint)")!
+            let (data, response) = try await session.data(from: url)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                logger.error("❌ Invalid response type", category: .networking)
+                throw APIError.invalidResponse
+            }
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                let error = APIError.parse(from: data, statusCode: httpResponse.statusCode)
+                if let requestId = error.requestId {
+                    logger.error(
+                        "❌ API Error: HTTP \(httpResponse.statusCode) [requestId: \(requestId)]",
+                        category: .networking
+                    )
+                } else {
+                    logger.error(
+                        "❌ API Error: HTTP \(httpResponse.statusCode)",
+                        category: .networking
+                    )
+                }
+                throw error
+            }
+
+            return try decodeResponse(data: data, type: type)
+        } catch let error as APIError {
+            throw error
+        } catch let error as DecodingError {
+            logger.error("❌ Decoding failed: \(error)", category: .networking)
+            throw APIError.decodingError(error)
+        } catch {
+            logger.error("❌ Network error: \(error)", category: .networking)
+            throw APIError.networkError(error)
+        }
+    }
+
     // MARK: - Private Helper Methods
 
     private func fetchMallsFromAPI() async throws -> MallsIndex {
@@ -176,28 +385,46 @@ actor CachedAPIPacksService: PacksService {
             category: .networking
         )
 
-        let url = URL(string: "\(baseURL)/v1/packs/malls/index")!
-        let (data, response) = try await session.data(from: url)
+        do {
+            let url = URL(string: "\(baseURL)/v1/packs/malls/index")!
+            let (data, response) = try await session.data(from: url)
 
-        guard let httpResponse = response as? HTTPURLResponse else {
-            logger.error("❌ Invalid response type", category: .networking)
-            throw APIError.invalidResponse
-        }
+            guard let httpResponse = response as? HTTPURLResponse else {
+                logger.error("❌ Invalid response type", category: .networking)
+                throw APIError.invalidResponse
+            }
 
-        guard (200...299).contains(httpResponse.statusCode) else {
-            logger.error(
-                "❌ API Error: HTTP \(httpResponse.statusCode)",
+            guard (200...299).contains(httpResponse.statusCode) else {
+                let error = APIError.parse(from: data, statusCode: httpResponse.statusCode)
+                if let requestId = error.requestId {
+                    logger.error(
+                        "❌ API Error: HTTP \(httpResponse.statusCode) [requestId: \(requestId)]",
+                        category: .networking
+                    )
+                } else {
+                    logger.error(
+                        "❌ API Error: HTTP \(httpResponse.statusCode)",
+                        category: .networking
+                    )
+                }
+                throw error
+            }
+
+            logger.info(
+                "✅ API Response: HTTP \(httpResponse.statusCode), decoding...",
                 category: .networking
             )
-            throw APIError.httpError(httpResponse.statusCode)
+
+            return try decodeResponse(data: data, type: MallsIndex.self)
+        } catch let error as APIError {
+            throw error
+        } catch let error as DecodingError {
+            logger.error("❌ Decoding failed: \(error)", category: .networking)
+            throw APIError.decodingError(error)
+        } catch {
+            logger.error("❌ Network error: \(error)", category: .networking)
+            throw APIError.networkError(error)
         }
-
-        logger.info(
-            "✅ API Response: HTTP \(httpResponse.statusCode), decoding...",
-            category: .networking
-        )
-
-        return try decodeResponse(data: data, type: MallsIndex.self)
     }
 
     private func fetchMallPackFromAPI(mallId: String) async throws -> MallPack {
@@ -206,42 +433,45 @@ actor CachedAPIPacksService: PacksService {
             category: .networking
         )
 
-        let url = URL(string: "\(baseURL)/v1/packs/malls/\(mallId)")!
-        let (data, response) = try await session.data(from: url)
+        do {
+            let url = URL(string: "\(baseURL)/v1/packs/malls/\(mallId)")!
+            let (data, response) = try await session.data(from: url)
 
-        guard let httpResponse = response as? HTTPURLResponse else {
-            logger.error("❌ Invalid response type", category: .networking)
-            throw APIError.invalidResponse
-        }
+            guard let httpResponse = response as? HTTPURLResponse else {
+                logger.error("❌ Invalid response type", category: .networking)
+                throw APIError.invalidResponse
+            }
 
-        guard (200...299).contains(httpResponse.statusCode) else {
-            logger.error(
-                "❌ API Error: HTTP \(httpResponse.statusCode)",
+            guard (200...299).contains(httpResponse.statusCode) else {
+                let error = APIError.parse(from: data, statusCode: httpResponse.statusCode)
+                if let requestId = error.requestId {
+                    logger.error(
+                        "❌ API Error: HTTP \(httpResponse.statusCode) [requestId: \(requestId)]",
+                        category: .networking
+                    )
+                } else {
+                    logger.error(
+                        "❌ API Error: HTTP \(httpResponse.statusCode)",
+                        category: .networking
+                    )
+                }
+                throw error
+            }
+
+            logger.info(
+                "✅ API Response: HTTP \(httpResponse.statusCode), decoding...",
                 category: .networking
             )
-            throw APIError.httpError(httpResponse.statusCode)
-        }
 
-        logger.info(
-            "✅ API Response: HTTP \(httpResponse.statusCode), decoding...",
-            category: .networking
-        )
-
-        do {
             return try decodeResponse(data: data, type: MallPack.self)
-        } catch {
-            logger.error(
-                "❌ Decoding failed: \(error)",
-                category: .networking,
-                error: error
-            )
-            if let jsonString = String(data: data, encoding: .utf8) {
-                logger.debug(
-                    "📄 Raw response: \(jsonString.prefix(1000))",
-                    category: .networking
-                )
-            }
+        } catch let error as APIError {
             throw error
+        } catch let error as DecodingError {
+            logger.error("❌ Decoding failed: \(error)", category: .networking, error: error)
+            throw APIError.decodingError(error)
+        } catch {
+            logger.error("❌ Network error: \(error)", category: .networking, error: error)
+            throw APIError.networkError(error)
         }
     }
 

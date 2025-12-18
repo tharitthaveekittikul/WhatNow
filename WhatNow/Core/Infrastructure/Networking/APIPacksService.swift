@@ -20,53 +20,76 @@ final class APIPacksService: PacksService {
         self.session = session
     }
 
-    func fetchMalls() async throws -> [Mall] {
-        let url = URL(string: "\(baseURL)/v1/packs/malls/index")!
+    // MARK: - Private Helper
 
-        let (data, response) = try await session.data(from: url)
+    /// Generic fetch method with proper error handling
+    private func fetch<T: Decodable>(_ type: T.Type, from endpoint: String) async throws -> T {
+        let url = URL(string: "\(baseURL)\(endpoint)")!
 
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw APIError.invalidResponse
+        do {
+            let (data, response) = try await session.data(from: url)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw APIError.invalidResponse
+            }
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                throw APIError.parse(from: data, statusCode: httpResponse.statusCode)
+            }
+
+            let decoder = JSONDecoder()
+            return try decoder.decode(T.self, from: data)
+        } catch let error as APIError {
+            throw error
+        } catch let error as DecodingError {
+            throw APIError.decodingError(error)
+        } catch {
+            throw APIError.networkError(error)
         }
+    }
 
-        let decoder = JSONDecoder()
-        let mallsIndex = try decoder.decode(MallsIndex.self, from: data)
+    // MARK: - Malls
+
+    func fetchMalls() async throws -> [Mall] {
+        let mallsIndex = try await fetch(MallsIndex.self, from: "/v1/packs/malls/index")
         return mallsIndex.malls
     }
 
     func fetchMallStores(mallId: String) async throws -> MallPack {
-        let url = URL(string: "\(baseURL)/v1/packs/malls/\(mallId)")!
-
-        let (data, response) = try await session.data(from: url)
-
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw APIError.invalidResponse
-        }
-
-        let decoder = JSONDecoder()
-        return try decoder.decode(MallPack.self, from: data)
+        try await fetch(MallPack.self, from: "/v1/packs/malls/\(mallId)")
     }
-}
 
-/// API errors
-enum APIError: Error, LocalizedError {
-    case invalidResponse
-    case httpError(Int)
-    case decodingError(Error)
-    case networkError
+    // MARK: - Famous Stores
 
-    var errorDescription: String? {
-        switch self {
-        case .invalidResponse:
-            return "Invalid server response"
-        case .httpError(let code):
-            return "Server error: HTTP \(code)"
-        case .decodingError(let error):
-            return "Failed to decode response: \(error.localizedDescription)"
-        case .networkError:
-            return "Network error occurred"
-        }
+    func fetchFamousStores() async throws -> FamousStoresPack {
+        try await fetch(FamousStoresPack.self, from: "/v1/packs/food/famous-stores")
+    }
+
+    // MARK: - Activities
+
+    func fetchActivityCategories() async throws -> ActivitiesIndex {
+        try await fetch(ActivitiesIndex.self, from: "/v1/packs/activities/index")
+    }
+
+    func fetchActivities(categoryId: String) async throws -> ActivityPack {
+        try await fetch(ActivityPack.self, from: "/v1/packs/activities/\(categoryId)")
+    }
+
+    // MARK: - Configuration & Metadata
+
+    func fetchAppConfig() async throws -> AppConfig {
+        try await fetch(AppConfig.self, from: "/v1/packs/config")
+    }
+
+    func fetchPriceRanges() async throws -> PriceRangesPack {
+        try await fetch(PriceRangesPack.self, from: "/v1/packs/meta/price-ranges")
+    }
+
+    func fetchTags() async throws -> TagsPack {
+        try await fetch(TagsPack.self, from: "/v1/packs/meta/tags")
+    }
+
+    func fetchCatalog() async throws -> CatalogPack {
+        try await fetch(CatalogPack.self, from: "/v1/packs/catalog")
     }
 }
