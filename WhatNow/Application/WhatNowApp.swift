@@ -6,10 +6,17 @@
 //
 
 import SwiftUI
+import SDWebImage
+import SDWebImageSVGCoder
 
 @main
 struct WhatNowApp: App {
     @StateObject private var appEnvironment = AppEnvironment()
+
+    init() {
+        // Register SVG coder for SDWebImage
+        SDImageCodersManager.shared.addCoder(SDImageSVGCoder.shared)
+    }
 
     var body: some Scene {
         WindowGroup {

@@ -6,8 +6,10 @@
 //
 
 import SwiftUI
+import SDWebImageSwiftUI
 
 /// Displays an async image with a fallback icon if the URL is nil or fails to load
+/// Supports SVG images via SDWebImage
 struct AsyncImageWithFallback: View {
     let imageUrl: String?
     let fallbackIcon: String
@@ -32,22 +34,13 @@ struct AsyncImageWithFallback: View {
     var body: some View {
         Group {
             if let urlString = imageUrl, let url = URL(string: urlString) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .empty:
-                        loadingView
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: size, height: size)
-                            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-                    case .failure:
-                        fallbackView
-                    @unknown default:
-                        fallbackView
-                    }
-                }
+                WebImage(url: url, options: [.retryFailed, .scaleDownLargeImages])
+                    .resizable()
+                    .indicator(Indicator.activity)
+                    .transition(.fade)
+                    .scaledToFit()
+                    .frame(width: size, height: size)
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             } else {
                 fallbackView
             }
