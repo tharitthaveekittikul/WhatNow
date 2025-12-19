@@ -268,73 +268,12 @@ final class SpinViewModel: ObservableObject {
             gradientRotation = 360
         }
 
-        let generator = UIImpactFeedbackGenerator(style: .light)
-        generator.prepare()
+        // Wait for ReelPicker animation to complete (3 seconds)
+        // ReelPicker will update reelIndex when it finishes
+        let totalDuration: Double = 3.0
 
-        let totalItems = shuffledItems.count
-
-        // Calculate target with large rotation for suspense
-        let fullSpins = Int.random(in: 10...16)
-        let randomExtra = Int.random(in: 0..<totalItems)
-        let targetReelIndex = reelIndex + (totalItems * fullSpins) + randomExtra
-
-        // Phase 1: Fast acceleration (0.3s)
-        let phase1Duration = 0.3
-        let phase1Target = reelIndex + 8
-
-        generator.impactOccurred()
-
-        if #available(iOS 17.0, *) {
-            // iOS 17+: Use animation completion callbacks
-            withAnimation(.easeIn(duration: phase1Duration)) {
-                reelIndex = phase1Target
-            } completion: {
-                self.startDecelerationPhase(
-                    targetReelIndex: targetReelIndex,
-                    generator: generator
-                )
-            }
-        } else {
-            // iOS 16: Fallback to DispatchQueue
-            withAnimation(.easeIn(duration: phase1Duration)) {
-                reelIndex = phase1Target
-            }
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + phase1Duration) {
-                self.startDecelerationPhase(
-                    targetReelIndex: targetReelIndex,
-                    generator: generator
-                )
-            }
-        }
-    }
-
-    private func startDecelerationPhase(
-        targetReelIndex: Int,
-        generator: UIImpactFeedbackGenerator
-    ) {
-        // Phase 2: Long deceleration (4.5s-5.5s)
-        let phase2Duration = Double.random(in: 4.5...5.5)
-        generator.impactOccurred()
-
-        if #available(iOS 17.0, *) {
-            withAnimation(
-                .timingCurve(0.22, 0.61, 0.36, 1.0, duration: phase2Duration)
-            ) {
-                reelIndex = targetReelIndex
-            } completion: {
-                self.onSpinComplete()
-            }
-        } else {
-            withAnimation(
-                .timingCurve(0.22, 0.61, 0.36, 1.0, duration: phase2Duration)
-            ) {
-                reelIndex = targetReelIndex
-            }
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + phase2Duration) {
-                self.onSpinComplete()
-            }
+        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration) {
+            self.onSpinComplete()
         }
     }
 
@@ -346,11 +285,7 @@ final class SpinViewModel: ObservableObject {
             gradientRotation = 0
         }
 
-        // Strong haptic at the end
-        let endFeedback = UIImpactFeedbackGenerator(style: .heavy)
-        endFeedback.impactOccurred()
-
-        // Calculate final selected item
+        // Calculate final selected item from reelIndex
         let totalItems = shuffledItems.count
         guard totalItems > 0 else {
             logger.error("❌ No items available after spin!")
