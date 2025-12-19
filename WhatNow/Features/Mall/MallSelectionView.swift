@@ -51,6 +51,7 @@ struct MallSelectionView: View {
             await viewModel.loadMalls()
         }
         .id(appEnvironment.languageDidChange) // Refresh when language changes
+        .withBannerAd(placement: .mallSelection)
     }
 }
 

@@ -65,6 +65,7 @@ struct ActivitySpinView: View {
             }
         }
         .id(appEnvironment.languageDidChange)
+        .withBannerAd(placement: .activitySpin)
     }
 
     // MARK: - Subviews
@@ -143,7 +144,7 @@ struct ActivitySpinView: View {
     private var itemDetailSheet: some View {
         if let store = viewModel.selectedItem {
             NavigationStack {
-                StoreDetailView(
+                ResultView(
                     store: store,
                     mall: nil,  // Activities don't have a specific mall
                     showSpinAgain: true
@@ -155,7 +156,7 @@ struct ActivitySpinView: View {
     @ViewBuilder
     private var itemListSheet: some View {
         NavigationStack {
-            StoreListView(
+            ListView(
                 stores: viewModel.allItems,
                 mall: Mall(
                     mallId: "activity-\(category.id)",

@@ -53,6 +53,7 @@ struct FoodCategoryView: View {
         .navigationTitle("What to Eat?".localized(for: appEnvironment.currentLanguage))
         .navigationBarTitleDisplayMode(.inline)
         .id(appEnvironment.languageDidChange) // Refresh when language changes
+        .withBannerAd(placement: .foodCategory)
     }
 }
 

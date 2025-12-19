@@ -20,6 +20,7 @@ final class DependencyContainer: @unchecked Sendable {
     // MARK: - Services
 
     let packsService: PacksService
+    let adsService: AdsService
 
     // MARK: - Use Cases
 
@@ -37,6 +38,7 @@ final class DependencyContainer: @unchecked Sendable {
             cache: cacheService,
             logger: logger
         )
+        self.adsService = GoogleMobileAdsService(logger: logger)
 
         // Initialize use cases
         self.fetchMallsUseCase = DefaultFetchMallsUseCase(packsService: packsService)

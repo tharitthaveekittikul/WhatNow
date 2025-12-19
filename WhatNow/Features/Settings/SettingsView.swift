@@ -211,6 +211,7 @@ struct SettingsView: View {
                 viewModel.appEnvironment = appEnvironment
             }
         }
+        .withBannerAd(placement: .settings)
     }
 }
 

@@ -48,4 +48,14 @@ final class AppEnvironment: ObservableObject {
             }
             .store(in: &cancellables)
     }
+
+    // MARK: - Convenience Accessors
+
+    var logger: Logger {
+        container.logger
+    }
+
+    var adsService: AdsService {
+        container.adsService
+    }
 }

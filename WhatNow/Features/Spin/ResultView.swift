@@ -1,13 +1,13 @@
 //
-//  StoreDetailView.swift
+//  ResultView.swift
 //  WhatNow
 //
-//  Store detail view - shows after spin result
+//  Result view - shows after spin result (store/activity details)
 //
 
 import SwiftUI
 
-struct StoreDetailView: View {
+struct ResultView: View {
     let store: Store
     let mall: Mall?
     let suggestedMallNames: String?
@@ -210,6 +210,7 @@ struct StoreDetailView: View {
         )
         .navigationBarTitleDisplayMode(.inline)
         .id(appEnvironment.languageDidChange)  // Refresh when language changes
+        .withBannerAd(placement: .result)
     }
 }
 
@@ -370,7 +371,7 @@ struct FlowLayout: Layout {
 
 #Preview {
     NavigationStack {
-        StoreDetailView(
+        ResultView(
             store: Store(
                 id: "bonchon",
                 name: LocalizedName(th: "บอนชอน", en: "Bonchon Chicken"),

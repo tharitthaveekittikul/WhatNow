@@ -76,6 +76,7 @@ struct HomeView: View {
                 }
             }
             .id(appEnvironment.languageDidChange) // Refresh when language changes
+            .withBannerAd(placement: .home)
         }
     }
 

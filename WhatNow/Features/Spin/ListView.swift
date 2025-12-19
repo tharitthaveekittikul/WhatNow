@@ -1,13 +1,13 @@
 //
-//  StoreListView.swift
+//  ListView.swift
 //  WhatNow
 //
-//  List view - shows all stores that will be randomized
+//  List view - shows all stores/activities that will be randomized
 //
 
 import SwiftUI
 
-struct StoreListView: View {
+struct ListView: View {
     let stores: [Store]
     let mall: Mall
     @Environment(\.dismiss) private var dismiss
@@ -41,9 +41,9 @@ struct StoreListView: View {
             LazyVStack(spacing: 12) {
                 ForEach(filteredStores) { store in
                     NavigationLink {
-                        StoreDetailView(store: store, mall: mall)
+                        ResultView(store: store, mall: mall)
                     } label: {
-                        StoreListRow(store: store)
+                        ListRow(store: store)
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
@@ -96,10 +96,11 @@ struct StoreListView: View {
             }
         }
         .id(appEnvironment.languageDidChange)  // Refresh when language changes
+        .withBannerAd(placement: .list)
     }
 }
 
-struct StoreListRow: View {
+struct ListRow: View {
     let store: Store
     @EnvironmentObject private var appEnvironment: AppEnvironment
 
@@ -203,7 +204,7 @@ struct StoreListRow: View {
 
 #Preview {
     NavigationStack {
-        StoreListView(
+        ListView(
             stores: [
                 Store(
                     id: "1",

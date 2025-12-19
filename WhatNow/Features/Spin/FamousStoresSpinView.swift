@@ -59,6 +59,7 @@ struct FamousStoresSpinView: View {
             }
         }
         .id(appEnvironment.languageDidChange)
+        .withBannerAd(placement: .famousSpin)
     }
 
     // MARK: - Subviews
@@ -138,7 +139,7 @@ struct FamousStoresSpinView: View {
     private var itemDetailSheet: some View {
         if let store = viewModel.selectedItem {
             NavigationStack {
-                StoreDetailView(
+                ResultView(
                     store: store,
                     mall: nil,  // Famous restaurants don't have a specific mall
                     suggestedMallNames: viewModel.getSuggestedMallNames(
@@ -154,7 +155,7 @@ struct FamousStoresSpinView: View {
     @ViewBuilder
     private var itemListSheet: some View {
         NavigationStack {
-            StoreListView(
+            ListView(
                 stores: viewModel.allItems,
                 mall: Mall(
                     mallId: "famous",

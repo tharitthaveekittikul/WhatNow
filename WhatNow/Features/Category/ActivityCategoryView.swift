@@ -33,6 +33,7 @@ struct ActivityCategoryView: View {
             hasAppeared = true
             await viewModel.loadCategories()
         }
+        .withBannerAd(placement: .activityCategory)
     }
 
     // MARK: - Subviews

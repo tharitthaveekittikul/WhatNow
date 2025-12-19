@@ -16,6 +16,12 @@ struct WhatNowApp: App {
     init() {
         // Register SVG coder for SDWebImage
         SDImageCodersManager.shared.addCoder(SDImageSVGCoder.shared)
+
+        // Initialize AdMob SDK
+        let logger = DependencyContainer.shared.logger
+        Task {
+            await GoogleMobileAdsService.initializeSDK(logger: logger)
+        }
     }
 
     var body: some Scene {

@@ -79,6 +79,7 @@ struct SpinView: View {
             viewModel.applyFiltersAndShuffle()
         }
         .id(appEnvironment.languageDidChange)  // Refresh when language changes
+        .withBannerAd(placement: .spin)
     }
 
     // MARK: - Subviews
@@ -204,7 +205,7 @@ struct SpinView: View {
             case .mall(let mall) = viewModel.configuration.context
         {
             NavigationStack {
-                StoreDetailView(store: store, mall: mall, showSpinAgain: true)
+                ResultView(store: store, mall: mall, showSpinAgain: true)
             }
         }
     }
@@ -213,7 +214,7 @@ struct SpinView: View {
     private var itemListSheet: some View {
         if case .mall(let mall) = viewModel.configuration.context {
             NavigationStack {
-                StoreListView(stores: viewModel.allItems, mall: mall)
+                ListView(stores: viewModel.allItems, mall: mall)
             }
         }
     }
