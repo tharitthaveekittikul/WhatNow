@@ -28,6 +28,11 @@ enum BannerPlacement: String, Sendable {
     case result = "Result_Banner"
 }
 
+/// Interstitial ad placement locations
+enum InterstitialPlacement: String, Sendable {
+    case spinResult = "Spin_Interstitial"
+}
+
 /// Ad load state
 enum AdLoadState: Equatable, Sendable {
     case notLoaded

@@ -21,6 +21,8 @@ final class DependencyContainer: @unchecked Sendable {
 
     let packsService: PacksService
     let adsService: AdsService
+    let spinSessionTracker: SpinSessionTracker
+    let interstitialAdManager: InterstitialAdManager
 
     // MARK: - Use Cases
 
@@ -39,6 +41,16 @@ final class DependencyContainer: @unchecked Sendable {
             logger: logger
         )
         self.adsService = GoogleMobileAdsService(logger: logger)
+        self.spinSessionTracker = DefaultSpinSessionTracker(
+            settingsStore: settingsStore,
+            logger: logger
+        )
+        self.interstitialAdManager = DefaultInterstitialAdManager(
+            spinTracker: spinSessionTracker,
+            adsService: adsService,
+            settingsStore: settingsStore,
+            logger: logger
+        )
 
         // Initialize use cases
         self.fetchMallsUseCase = DefaultFetchMallsUseCase(packsService: packsService)

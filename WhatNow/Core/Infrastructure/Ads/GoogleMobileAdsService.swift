@@ -18,9 +18,19 @@ actor GoogleMobileAdsService: NSObject, AdsService {
     // Ad Unit IDs for general placements
     private let adUnitIDs: [AdPlacement: String] = [
         .banner: "ca-app-pub-9089812705885677/8493895585",  // Default banner (Home)
-        .interstitial: "ca-app-pub-3940256099942544/4411468910",  // Test ID - Replace when you create interstitial
+        .interstitial: "ca-app-pub-9089812705885677/5475359315",  // Spin Interstitial
         .rewarded: "ca-app-pub-3940256099942544/1712485313",  // Test ID - Replace when you create rewarded
     ]
+
+    // Interstitial ad unit IDs
+    private let interstitialAdUnitIDs: [InterstitialPlacement: String] = [
+        .spinResult: "ca-app-pub-9089812705885677/5475359315"
+    ]
+
+    // State
+    private var loadedInterstitial: InterstitialAd?
+    private var isLoadingInterstitial = false
+    private var interstitialDismissalContinuation: CheckedContinuation<Void, Never>?
 
     // Banner ad unit IDs for each screen
     // NOTE: Test device identifiers are configured in initializeSDK()
@@ -68,15 +78,100 @@ actor GoogleMobileAdsService: NSObject, AdsService {
             )
         }
 
-        // Ad loading is handled by the view components (BannerAdView, etc.)
-        // This method is here for protocol compliance and can be used for preloading
+        // Handle interstitial loading
+        if placement == .interstitial {
+            guard !isLoadingInterstitial else {
+                logger.debug("Interstitial already loading", category: .networking)
+                return
+            }
+
+            isLoadingInterstitial = true
+
+            await MainActor.run {
+                let request = Request()
+                InterstitialAd.load(with: adUnitID, request: request) { [weak self] ad, error in
+                    Task {
+                        guard let self = self else { return }
+
+                        await self.setLoadingState(false)
+
+                        if let error = error {
+                            self.logger.error("Failed to load interstitial ad", category: .networking, error: error)
+                            return
+                        }
+
+                        if let ad = ad {
+                            await self.setLoadedInterstitial(ad)
+                            self.logger.info("Interstitial ad loaded successfully", category: .networking)
+                        }
+                    }
+                }
+            }
+            return
+        }
+
+        // Banner ads are handled by BannerAdView component
     }
 
     func showAd(for placement: AdPlacement) async -> Bool {
         guard !adsDisabled else { return false }
-        // For banner ads, showing is handled by the BannerAdView component
-        // For interstitial/rewarded ads, implement presentation logic here
+
+        // Handle interstitial showing
+        if placement == .interstitial {
+            guard let interstitial = loadedInterstitial else {
+                logger.warning("No interstitial ad loaded", category: .networking)
+                return false
+            }
+
+            // Set delegate to receive dismissal callback
+            await MainActor.run {
+                interstitial.fullScreenContentDelegate = self
+            }
+
+            // Present ad and wait for dismissal
+            let success = await MainActor.run {
+                guard let rootVC = UIApplication.shared.connectedScenes
+                    .compactMap({ $0 as? UIWindowScene })
+                    .first?.windows.first?.rootViewController else {
+                    logger.error("No root view controller found", category: .networking)
+                    return false
+                }
+
+                interstitial.present(from: rootVC)
+                logger.info("Interstitial ad presented", category: .networking)
+                return true
+            }
+
+            if success {
+                // Wait for ad to be dismissed
+                await withCheckedContinuation { continuation in
+                    interstitialDismissalContinuation = continuation
+                }
+
+                logger.info("Interstitial ad dismissed by user", category: .networking)
+
+                loadedInterstitial = nil  // Clear after showing
+
+                // Preload next ad
+                Task {
+                    try? await self.loadAd(for: .interstitial)
+                }
+            }
+
+            return success
+        }
+
+        // Banner ads are handled by BannerAdView component
         return true
+    }
+
+    // Helper methods for state management
+    private func setLoadingState(_ isLoading: Bool) {
+        isLoadingInterstitial = isLoading
+    }
+
+    private func setLoadedInterstitial(_ ad: InterstitialAd?) {
+        loadedInterstitial = ad
     }
 
     func disableAds() async {
@@ -96,6 +191,32 @@ actor GoogleMobileAdsService: NSObject, AdsService {
         -> String?
     {
         bannerAdUnitIDs[placement]
+    }
+}
+
+// MARK: - GADFullScreenContentDelegate
+
+extension GoogleMobileAdsService: FullScreenContentDelegate {
+    nonisolated func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+        // Resume the continuation when ad is dismissed
+        Task {
+            await resumeDismissalContinuation()
+        }
+    }
+
+    nonisolated func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
+        // If ad fails to present, also resume continuation
+        Task {
+            await self.logger.error("Interstitial ad failed to present", category: .networking, error: error)
+            await resumeDismissalContinuation()
+        }
+    }
+
+    private func resumeDismissalContinuation() {
+        if let continuation = interstitialDismissalContinuation {
+            continuation.resume()
+            interstitialDismissalContinuation = nil
+        }
     }
 }
 

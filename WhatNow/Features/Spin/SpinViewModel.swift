@@ -44,6 +44,7 @@ final class SpinViewModel: ObservableObject {
     let configuration: SpinConfiguration
     private let fetchMallStoresUseCase: FetchMallStoresUseCase
     private let packsService: PacksService
+    private let interstitialAdManager: InterstitialAdManager
     private let logger = DependencyContainer.shared.logger
     private var hasLoaded = false
 
@@ -109,7 +110,8 @@ final class SpinViewModel: ObservableObject {
     init(
         configuration: SpinConfiguration,
         fetchMallStoresUseCase: FetchMallStoresUseCase? = nil,
-        packsService: PacksService? = nil
+        packsService: PacksService? = nil,
+        interstitialAdManager: InterstitialAdManager? = nil
     ) {
         self.configuration = configuration
         self.fetchMallStoresUseCase =
@@ -117,6 +119,14 @@ final class SpinViewModel: ObservableObject {
             ?? DependencyContainer.shared.fetchMallStoresUseCase
         self.packsService =
             packsService ?? DependencyContainer.shared.packsService
+        self.interstitialAdManager =
+            interstitialAdManager
+            ?? DependencyContainer.shared.interstitialAdManager
+
+        // Preload interstitial ad
+        Task {
+            await self.interstitialAdManager.preloadInterstitial()
+        }
     }
 
     // MARK: - Data Loading
@@ -302,6 +312,36 @@ final class SpinViewModel: ObservableObject {
     func spin() {
         guard canSpin else { return }
 
+        // Record spin and check if we should show ad BEFORE spinning
+        Task {
+            await interstitialAdManager.recordSpin()
+
+            let shouldShowAd = await interstitialAdManager.shouldShowInterstitialAfterSpin()
+
+            if shouldShowAd {
+                // Show interstitial ad first, then start spin
+                logger.info("🎬 Showing interstitial ad before spin")
+                let adShown = await interstitialAdManager.showInterstitial()
+
+                if adShown {
+                    // Ad was shown and dismissed, now start spin
+                    logger.info("✅ Ad dismissed, starting spin animation")
+                }
+
+                // Start spin animation after ad dismissal
+                await MainActor.run {
+                    self.startSpinAnimation()
+                }
+            } else {
+                // No ad, start spin immediately
+                await MainActor.run {
+                    self.startSpinAnimation()
+                }
+            }
+        }
+    }
+
+    private func startSpinAnimation() {
         isSpinning = true
 
         // Start gradient rotation animation
@@ -341,8 +381,10 @@ final class SpinViewModel: ObservableObject {
             "🎰 Spin result: \(itemName) (Index: \(finalIndex)/\(totalItems), Type: \(configuration.spinType.rawValue))"
         )
 
-        // Set selected item and show detail after delay
+        // Set selected item
         selectedItem = item
+
+        // Show result after short delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.showItemDetail = true
         }

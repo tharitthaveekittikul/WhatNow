@@ -30,6 +30,13 @@ struct WhatNowApp: App {
                 .environmentObject(appEnvironment)
                 .preferredColorScheme(appEnvironment.colorScheme)
                 .environment(\.locale, appEnvironment.locale)
+                .task {
+                    // Mark app as launched (for first-time setup)
+                    await appEnvironment.spinSessionTracker.markAppLaunched()
+
+                    // Preload first interstitial ad
+                    await appEnvironment.interstitialAdManager.preloadInterstitial()
+                }
         }
     }
 }

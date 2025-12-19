@@ -58,4 +58,12 @@ final class AppEnvironment: ObservableObject {
     var adsService: AdsService {
         container.adsService
     }
+
+    var spinSessionTracker: SpinSessionTracker {
+        container.spinSessionTracker
+    }
+
+    var interstitialAdManager: InterstitialAdManager {
+        container.interstitialAdManager
+    }
 }
