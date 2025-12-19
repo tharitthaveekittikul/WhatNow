@@ -90,8 +90,8 @@ struct HomeView: View {
             MallSelectionView()
         case .famousStores:
             FamousStoresSpinView()
-        case .activitySpin(let type):
-            ActivitySpinView(activityType: type)
+        case .activitySpin(let category):
+            ActivitySpinView(category: category)
         case .spin(let mall):
             SpinView(mall: mall)
         case .settings:

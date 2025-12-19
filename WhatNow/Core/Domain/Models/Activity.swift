@@ -14,9 +14,8 @@ struct ActivityCategory: Identifiable, Hashable, Sendable, Codable {
     let nameEN: String
     let assetKey: String?
 
-    var displayName: String {
-        // TODO: Use locale to determine TH vs EN
-        nameTH
+    func displayName(for language: Language) -> String {
+        language == .thai ? nameTH : nameEN
     }
 }
 
@@ -28,9 +27,8 @@ struct ActivityItem: Identifiable, Hashable, Sendable, Codable {
     let tags: [String]
     let priceRange: PriceRange
 
-    var displayName: String {
-        // TODO: Use locale to determine TH vs EN
-        nameTH
+    func displayName(for language: Language) -> String {
+        language == .thai ? nameTH : nameEN
     }
 }
 

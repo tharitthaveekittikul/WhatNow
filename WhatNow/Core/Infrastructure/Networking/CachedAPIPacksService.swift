@@ -76,8 +76,14 @@ actor CachedAPIPacksService: PacksService {
             key: CacheKey.mallsIndex,
             type: MallsIndex.self
         ) {
+            let mallNames = cached.data.malls.prefix(3).map { $0.displayName }.joined(separator: ", ")
+            let preview = cached.data.malls.count > 3 ? "\(mallNames)... (\(cached.data.malls.count) total)" : mallNames
             logger.info(
-                "📦 Cache hit: malls_index (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - using cached data",
+                "📦 Cache hit: malls_index (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s)",
+                category: .networking
+            )
+            logger.debug(
+                "   └─ Cached data: [\(preview)]",
                 category: .networking
             )
             cachedMalls = cached.data.malls
@@ -91,8 +97,14 @@ actor CachedAPIPacksService: PacksService {
         )
         let mallsIndex = try await fetchMallsFromAPI()
 
+        let mallNames = mallsIndex.malls.prefix(3).map { $0.displayName }.joined(separator: ", ")
+        let preview = mallsIndex.malls.count > 3 ? "\(mallNames)... (\(mallsIndex.malls.count) total)" : mallNames
         logger.info(
             "✅ Decoded \(mallsIndex.malls.count) malls (v\(mallsIndex.version)), caching...",
+            category: .networking
+        )
+        logger.debug(
+            "   └─ Response data: [\(preview)]",
             category: .networking
         )
         try? await saveToCache(
@@ -139,8 +151,15 @@ actor CachedAPIPacksService: PacksService {
             key: CacheKey.mall(mallId),
             type: MallPack.self
         ) {
+            let storeCount = cached.data.categories.flatMap { $0.items }.count
+            let categoryNames = cached.data.categories.prefix(2).map { $0.name.en ?? $0.name.th ?? "Unknown" }.joined(separator: ", ")
+            let categoryPreview = cached.data.categories.count > 2 ? "\(categoryNames)... (\(cached.data.categories.count) categories)" : categoryNames
             logger.info(
-                "📦 Cache hit: mall_\(mallId) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - using cached data",
+                "📦 Cache hit: mall_\(mallId) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s)",
+                category: .networking
+            )
+            logger.debug(
+                "   └─ Cached data: \(storeCount) stores in [\(categoryPreview)]",
                 category: .networking
             )
             cachedMallPacks[mallId] = cached.data
@@ -154,8 +173,15 @@ actor CachedAPIPacksService: PacksService {
         )
         let mallPack = try await fetchMallPackFromAPI(mallId: mallId)
 
+        let storeCount = mallPack.categories.flatMap { $0.items }.count
+        let categoryNames = mallPack.categories.prefix(2).map { $0.name.en ?? $0.name.th ?? "Unknown" }.joined(separator: ", ")
+        let categoryPreview = mallPack.categories.count > 2 ? "\(categoryNames)... (\(mallPack.categories.count) categories)" : categoryNames
         logger.info(
             "✅ Decoded \(mallPack.categories.count) categories (v\(mallPack.version)), caching...",
+            category: .networking
+        )
+        logger.debug(
+            "   └─ Response data: \(storeCount) stores in [\(categoryPreview)]",
             category: .networking
         )
         try? await saveToCache(
@@ -175,8 +201,14 @@ actor CachedAPIPacksService: PacksService {
 
         // Check disk cache first
         if let cached = try? await loadFromCache(key: key, type: FamousStoresPack.self) {
+            let storeNames = cached.data.items.prefix(3).map { $0.name }.joined(separator: ", ")
+            let preview = cached.data.items.count > 3 ? "\(storeNames)... (\(cached.data.items.count) total)" : storeNames
             logger.info(
-                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - using cached data",
+                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s)",
+                category: .networking
+            )
+            logger.debug(
+                "   └─ Cached data: [\(preview)]",
                 category: .networking
             )
             return cached.data
@@ -198,7 +230,13 @@ actor CachedAPIPacksService: PacksService {
             }
 
             let pack = try decodeResponse(data: data, type: FamousStoresPack.self)
+            let storeNames = pack.items.prefix(3).map { $0.name }.joined(separator: ", ")
+            let preview = pack.items.count > 3 ? "\(storeNames)... (\(pack.items.count) total)" : storeNames
             logger.info("✅ Decoded \(pack.items.count) famous stores (v\(pack.version)), caching...", category: .networking)
+            logger.debug(
+                "   └─ Response data: [\(preview)]",
+                category: .networking
+            )
             try? await saveToCache(pack, forKey: key, version: pack.version)
             return pack
         } catch let error as APIError {
@@ -219,8 +257,14 @@ actor CachedAPIPacksService: PacksService {
 
         // Check disk cache first
         if let cached = try? await loadFromCache(key: key, type: ActivitiesIndex.self) {
+            let categoryNames = cached.data.categories.prefix(3).map { $0.nameEN }.joined(separator: ", ")
+            let preview = cached.data.categories.count > 3 ? "\(categoryNames)... (\(cached.data.categories.count) total)" : categoryNames
             logger.info(
-                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - using cached data",
+                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s)",
+                category: .networking
+            )
+            logger.debug(
+                "   └─ Cached data: [\(preview)]",
                 category: .networking
             )
             return cached.data
@@ -229,7 +273,13 @@ actor CachedAPIPacksService: PacksService {
         // Fetch from API
         logger.info("🌐 API Request: GET /v1/packs/activities/index", category: .networking)
         let index = try await fetchFromAPI(ActivitiesIndex.self, endpoint: "/v1/packs/activities/index")
+        let categoryNames = index.categories.prefix(3).map { $0.nameEN }.joined(separator: ", ")
+        let preview = index.categories.count > 3 ? "\(categoryNames)... (\(index.categories.count) total)" : categoryNames
         logger.info("✅ Decoded \(index.categories.count) activity categories (v\(index.version)), caching...", category: .networking)
+        logger.debug(
+            "   └─ Response data: [\(preview)]",
+            category: .networking
+        )
         try? await saveToCache(index, forKey: key, version: index.version)
         return index
     }
@@ -239,8 +289,14 @@ actor CachedAPIPacksService: PacksService {
 
         // Check disk cache first
         if let cached = try? await loadFromCache(key: key, type: ActivityPack.self) {
+            let activityNames = cached.data.items.prefix(3).map { $0.nameTH }.joined(separator: ", ")
+            let preview = cached.data.items.count > 3 ? "\(activityNames)... (\(cached.data.items.count) total)" : activityNames
             logger.info(
-                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - using cached data",
+                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s)",
+                category: .networking
+            )
+            logger.debug(
+                "   └─ Cached data: [\(preview)]",
                 category: .networking
             )
             return cached.data
@@ -249,7 +305,13 @@ actor CachedAPIPacksService: PacksService {
         // Fetch from API
         logger.info("🌐 API Request: GET /v1/packs/activities/\(categoryId)", category: .networking)
         let pack = try await fetchFromAPI(ActivityPack.self, endpoint: "/v1/packs/activities/\(categoryId)")
+        let activityNames = pack.items.prefix(3).map { $0.nameTH }.joined(separator: ", ")
+        let preview = pack.items.count > 3 ? "\(activityNames)... (\(pack.items.count) total)" : activityNames
         logger.info("✅ Decoded \(pack.items.count) activities (v\(pack.version)), caching...", category: .networking)
+        logger.debug(
+            "   └─ Response data: [\(preview)]",
+            category: .networking
+        )
         try? await saveToCache(pack, forKey: key, version: pack.version)
         return pack
     }

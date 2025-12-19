@@ -8,18 +8,18 @@
 import SwiftUI
 
 struct ActivitySpinView: View {
-    let activityType: ActivitySourceType
+    let category: ActivityCategory
     @StateObject private var viewModel: SpinViewModel
     @EnvironmentObject private var appEnvironment: AppEnvironment
     @State private var hasAppeared = false
 
-    init(activityType: ActivitySourceType) {
-        self.activityType = activityType
+    init(category: ActivityCategory) {
+        self.category = category
         let config = SpinConfiguration(
-            context: .activity(category: activityType.rawValue),
+            context: .activity(category: category.id),
             title: LocalizedName(
-                th: activityType.title(for: .thai),
-                en: activityType.title(for: .english)
+                th: category.nameTH,
+                en: category.nameEN
             ),
             showSeeAllButton: true,
             filteringEnabled: false,  // No filtering for activities (can be enabled later)
@@ -41,7 +41,7 @@ struct ActivitySpinView: View {
                 contentView
             }
         }
-        .navigationTitle(activityType.title(for: appEnvironment.currentLanguage))
+        .navigationTitle(appEnvironment.currentLanguage == .thai ? category.nameTH : category.nameEN)
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $viewModel.showItemDetail) {
             itemDetailSheet
@@ -94,7 +94,7 @@ struct ActivitySpinView: View {
         VStack(spacing: 16) {
             // Header
             SpinHeader(
-                title: activityType.title(for: appEnvironment.currentLanguage),
+                title: appEnvironment.currentLanguage == .thai ? category.nameTH : category.nameEN,
                 subtitle: viewModel.displaySubtitle(for: appEnvironment.currentLanguage),
                 filterCount: 0,
                 hasActiveFilters: false,
@@ -138,14 +138,14 @@ struct ActivitySpinView: View {
                 StoreDetailView(
                     store: store,
                     mall: Mall(
-                        mallId: "activity-\(activityType.rawValue)",
+                        mallId: "activity-\(category.id)",
                         name: LocalizedName(
-                            th: activityType.title(for: .thai),
-                            en: activityType.title(for: .english)
+                            th: category.nameTH,
+                            en: category.nameEN
                         ),
-                        displayName: activityType.title(for: .english),
+                        displayName: category.nameEN,
                         city: "Bangkok",
-                        assetKey: "activity",
+                        assetKey: category.assetKey ?? "activity",
                         tags: []
                     ),
                     showSpinAgain: true
@@ -160,14 +160,14 @@ struct ActivitySpinView: View {
             StoreListView(
                 stores: viewModel.allItems,
                 mall: Mall(
-                    mallId: "activity-\(activityType.rawValue)",
+                    mallId: "activity-\(category.id)",
                     name: LocalizedName(
-                        th: activityType.title(for: .thai),
-                        en: activityType.title(for: .english)
+                        th: category.nameTH,
+                        en: category.nameEN
                     ),
-                    displayName: activityType.title(for: .english),
+                    displayName: category.nameEN,
                     city: "Bangkok",
-                    assetKey: "activity",
+                    assetKey: category.assetKey ?? "activity",
                     tags: []
                 )
             )
@@ -177,7 +177,14 @@ struct ActivitySpinView: View {
 
 #Preview {
     NavigationStack {
-        ActivitySpinView(activityType: .indoor)
+        ActivitySpinView(
+            category: ActivityCategory(
+                id: "indoor-activities",
+                nameTH: "กิจกรรมในร่ม",
+                nameEN: "Indoor Activities",
+                assetKey: "indoor"
+            )
+        )
     }
     .environmentObject(AppEnvironment())
 }

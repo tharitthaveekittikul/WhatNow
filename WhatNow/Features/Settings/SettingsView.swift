@@ -78,10 +78,6 @@ struct SettingsView: View {
                                 .foregroundColor(.App.text)
 
                             Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.App.textTertiary)
-                                .font(.caption)
                         }
                         .padding(.vertical, 8)
                     }
@@ -191,10 +187,6 @@ struct SettingsView: View {
                                 Text("Contact Support".localized(for: viewModel.selectedLanguage))
                                     .font(.appBody)
                                     .foregroundColor(.App.text)
-
-                                Text("I will implement later".localized(for: viewModel.selectedLanguage))
-                                    .font(.appCaption)
-                                    .foregroundColor(.App.textTertiary)
                             }
 
                             Spacer()
