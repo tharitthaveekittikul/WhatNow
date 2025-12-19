@@ -145,18 +145,7 @@ struct ActivitySpinView: View {
             NavigationStack {
                 StoreDetailView(
                     store: store,
-                    mall: Mall(
-                        mallId: "activity-\(category.id)",
-                        name: LocalizedName(
-                            th: category.nameTH,
-                            en: category.nameEN
-                        ),
-                        displayName: category.nameEN,
-                        city: "Bangkok",
-                        assetKey: category.assetKey ?? "activity",
-                        tags: [],
-                        logoUrl: nil
-                    ),
+                    mall: nil,  // Activities don't have a specific mall
                     showSpinAgain: true
                 )
             }

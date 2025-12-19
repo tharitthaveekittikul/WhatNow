@@ -140,17 +140,10 @@ struct FamousStoresSpinView: View {
             NavigationStack {
                 StoreDetailView(
                     store: store,
-                    mall: Mall(
-                        mallId: "famous",
-                        name: LocalizedName(
-                            th: "ร้านดัง",
-                            en: "Famous Restaurants"
-                        ),
-                        displayName: "Famous Restaurants",
-                        city: "Bangkok",
-                        assetKey: "famous",
-                        tags: [],
-                        logoUrl: nil
+                    mall: nil,  // Famous restaurants don't have a specific mall
+                    suggestedMallNames: viewModel.getSuggestedMallNames(
+                        for: store.id,
+                        language: appEnvironment.currentLanguage
                     ),
                     showSpinAgain: true
                 )

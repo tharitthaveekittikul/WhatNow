@@ -9,14 +9,16 @@ import SwiftUI
 
 struct StoreDetailView: View {
     let store: Store
-    let mall: Mall
+    let mall: Mall?
+    let suggestedMallNames: String?
     let showSpinAgain: Bool
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var appEnvironment: AppEnvironment
 
-    init(store: Store, mall: Mall, showSpinAgain: Bool = false) {
+    init(store: Store, mall: Mall? = nil, suggestedMallNames: String? = nil, showSpinAgain: Bool = false) {
         self.store = store
         self.mall = mall
+        self.suggestedMallNames = suggestedMallNames
         self.showSpinAgain = showSpinAgain
     }
 
@@ -63,16 +65,29 @@ struct StoreDetailView: View {
                         )
                     }
 
-                    // Mall card
-                    InfoCard(
-                        icon: "building.2.fill",
-                        title: "Mall".localized(
-                            for: appEnvironment.currentLanguage
-                        ),
-                        content: mall.name.localized(
-                            for: appEnvironment.currentLanguage
+                    // Mall card (only show if mall is provided)
+                    if let mall = mall {
+                        InfoCard(
+                            icon: "building.2.fill",
+                            title: "Mall".localized(
+                                for: appEnvironment.currentLanguage
+                            ),
+                            content: mall.name.localized(
+                                for: appEnvironment.currentLanguage
+                            )
                         )
-                    )
+                    }
+
+                    // Suggested malls card (for famous restaurants)
+                    if let suggestedMallNames = suggestedMallNames {
+                        InfoCard(
+                            icon: "building.2.fill",
+                            title: "Available at".localized(
+                                for: appEnvironment.currentLanguage
+                            ),
+                            content: suggestedMallNames
+                        )
+                    }
 
                     // Tags card
                     if !store.tags.isEmpty {

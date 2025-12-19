@@ -19,6 +19,10 @@ final class SpinViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
 
+    // Store metadata (e.g., suggested malls for famous stores)
+    private var storeSuggestedMalls: [String: [String]] = [:]  // storeId -> [mallId]
+    private var mallsById: [String: Mall] = [:]  // mallId -> Mall
+
     // Filter state
     @Published var filter = StoreFilter()
 
@@ -83,6 +87,21 @@ final class SpinViewModel: ObservableObject {
         } else {
             return "\(allItems.count) stores".localized(for: language)
         }
+    }
+
+    /// Get formatted suggested mall names for a store
+    func getSuggestedMallNames(for storeId: String, language: Language) -> String? {
+        guard let mallIds = storeSuggestedMalls[storeId], !mallIds.isEmpty else {
+            return nil
+        }
+
+        let mallNames = mallIds.compactMap { mallId -> String? in
+            mallsById[mallId]?.name.localized(for: language)
+        }
+
+        guard !mallNames.isEmpty else { return nil }
+
+        return mallNames.joined(separator: ", ")
     }
 
     // MARK: - Initialization
@@ -156,9 +175,31 @@ final class SpinViewModel: ObservableObject {
             )
             let pack = try await packsService.fetchFamousStores()
 
-            // Convert FamousStoreItem to Store
+            // Fetch malls index to map mall IDs to names
+            do {
+                let malls = try await packsService.fetchMalls()
+                mallsById = Dictionary(
+                    uniqueKeysWithValues: malls.map { ($0.mallId, $0) }
+                )
+                logger.info(
+                    "✅ Loaded \(mallsById.count) malls for mapping",
+                    category: .networking
+                )
+            } catch {
+                logger.error(
+                    "⚠️ Failed to load malls for mapping: \(error)",
+                    category: .networking
+                )
+            }
+
+            // Convert FamousStoreItem to Store and store suggested malls
             allItems = pack.items.map { item in
-                Store(
+                // Store suggested malls mapping
+                if let suggestedMalls = item.suggestedMalls {
+                    storeSuggestedMalls[item.id] = suggestedMalls
+                }
+
+                return Store(
                     id: item.id,
                     name: LocalizedName(th: item.name, en: item.name),
                     displayName: item.name,
