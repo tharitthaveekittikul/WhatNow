@@ -13,6 +13,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E15C5CD62EF5C7E000C0BB08 /* WhatNow.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = WhatNow.storekit; sourceTree = "<group>"; };
 		E191AAD02EF2AEA0009137EC /* WhatNow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhatNow.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -54,6 +55,7 @@
 		E191AAC72EF2AEA0009137EC = {
 			isa = PBXGroup;
 			children = (
+				E15C5CD62EF5C7E000C0BB08 /* WhatNow.storekit */,
 				E191AAD22EF2AEA0009137EC /* WhatNow */,
 				E191AAD12EF2AEA0009137EC /* Products */,
 			);

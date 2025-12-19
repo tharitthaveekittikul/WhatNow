@@ -14,6 +14,7 @@ actor GoogleMobileAdsService: NSObject, AdsService {
 
     private var adsDisabled = false
     private let logger: Logger
+    private let purchaseService: PurchaseService
 
     // Ad Unit IDs for general placements
     private let adUnitIDs: [AdPlacement: String] = [
@@ -50,8 +51,9 @@ actor GoogleMobileAdsService: NSObject, AdsService {
 
     // MARK: - Initialization
 
-    init(logger: Logger) {
+    init(logger: Logger, purchaseService: PurchaseService) {
         self.logger = logger
+        self.purchaseService = purchaseService
         super.init()
     }
 
@@ -59,8 +61,13 @@ actor GoogleMobileAdsService: NSObject, AdsService {
 
     nonisolated var areAdsDisabled: Bool {
         get async {
-            // For now, ads are always enabled
-            // TODO: Add premium purchase support in the future
+            // Check if user has purchased Pro
+            let hasPro = await purchaseService.hasPurchased(productId: StoreKitPurchaseService.whatNowProProductID)
+            if hasPro {
+                return true
+            }
+
+            // Check if ads are manually disabled
             return await getAdsDisabled()
         }
     }

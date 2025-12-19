@@ -1,0 +1,90 @@
+{
+  "identifier" : "WhatNow",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "79.00",
+      "familyShareable" : false,
+      "internalID" : "whatnow_pro",
+      "localizations" : [
+        {
+          "description" : "Remove all ads and unlock upcoming Pro features",
+          "displayName" : "WhatNow Pro",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "ลบโฆษณาทั้งหมดและปลดล็อกฟีเจอร์ Pro ที่กำลังจะมาถึง",
+          "displayName" : "WhatNow Pro",
+          "locale" : "th"
+        }
+      ],
+      "productID" : "whatnow_pro",
+      "referenceName" : "WhatNow Pro",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6740031087",
+    "_developerTeamID" : "3V32V63Z66",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 754869600.0,
+    "_locale" : "en_US",
+    "_storefront" : "THA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

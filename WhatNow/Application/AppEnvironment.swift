@@ -66,4 +66,8 @@ final class AppEnvironment: ObservableObject {
     var interstitialAdManager: InterstitialAdManager {
         container.interstitialAdManager
     }
+
+    var purchaseService: PurchaseService {
+        container.purchaseService
+    }
 }

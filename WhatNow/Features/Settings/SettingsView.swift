@@ -88,6 +88,29 @@ struct SettingsView: View {
                 }
                 .listRowBackground(Color.App.surface)
 
+                // WhatNow Pro Section
+                if !viewModel.isProUser {
+                    Section {
+                        proUpgradeCard
+                    } header: {
+                        Text("WhatNow Pro".localized(for: viewModel.selectedLanguage))
+                            .font(.appHeadline)
+                            .foregroundColor(.App.textSecondary)
+                    }
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+                } else {
+                    Section {
+                        proStatusCard
+                    } header: {
+                        Text("WhatNow Pro".localized(for: viewModel.selectedLanguage))
+                            .font(.appHeadline)
+                            .foregroundColor(.App.textSecondary)
+                    }
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+                }
+
                 // About Section
                 Section {
                     // Version
@@ -211,7 +234,146 @@ struct SettingsView: View {
                 viewModel.appEnvironment = appEnvironment
             }
         }
+        .task {
+            await viewModel.loadProProduct()
+            await viewModel.checkProStatus()
+        }
+        .alert("Restore Purchases".localized(for: viewModel.selectedLanguage), isPresented: Binding(
+            get: { viewModel.restoreResultMessage != nil },
+            set: { if !$0 { viewModel.dismissRestoreResult() } }
+        )) {
+            Button("OK", role: .cancel) {
+                viewModel.dismissRestoreResult()
+            }
+        } message: {
+            if let message = viewModel.restoreResultMessage {
+                Text(message)
+            }
+        }
         .withBannerAd(placement: .settings)
+    }
+
+    // MARK: - Pro Upgrade Card
+
+    @ViewBuilder
+    private var proUpgradeCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Pro Icon and Title
+            HStack(spacing: 12) {
+                Image(systemName: "crown.fill")
+                    .foregroundColor(.App.text)
+                    .font(.system(size: 28))
+
+                Text("Upgrade to Pro".localized(for: viewModel.selectedLanguage))
+                    .font(.appTitle)
+                    .foregroundColor(.App.text)
+            }
+
+            // Benefits List
+            VStack(alignment: .leading, spacing: 8) {
+                benefitRow(icon: "xmark.circle.fill", text: "Remove all ads".localized(for: viewModel.selectedLanguage))
+                benefitRow(icon: "star.fill", text: "Unlock upcoming Pro features".localized(for: viewModel.selectedLanguage))
+                benefitRow(icon: "heart.fill", text: "Support development".localized(for: viewModel.selectedLanguage))
+            }
+
+            // Price and Purchase Button
+            if let product = viewModel.proProduct {
+                VStack(spacing: 12) {
+                    Text(product.priceFormatted)
+                        .font(.appLargeTitle)
+                        .foregroundColor(.App.text)
+
+                    Button(action: {
+                        Task {
+                            await viewModel.purchasePro()
+                        }
+                    }) {
+                        Text(viewModel.isPurchasing ? "Processing...".localized(for: viewModel.selectedLanguage) : "Purchase".localized(for: viewModel.selectedLanguage))
+                            .font(.appHeadline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.App.text)
+                            .cornerRadius(12)
+                    }
+                    .disabled(viewModel.isPurchasing)
+
+                    Button("Restore Purchases".localized(for: viewModel.selectedLanguage)) {
+                        Task {
+                            await viewModel.restorePurchases()
+                        }
+                    }
+                    .font(.caption)
+                    .foregroundColor(.App.textSecondary)
+                }
+                .frame(maxWidth: .infinity)
+            } else if viewModel.isLoadingProduct {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+            } else {
+                Text("Failed to load product".localized(for: viewModel.selectedLanguage))
+                    .font(.appBody)
+                    .foregroundColor(.App.textTertiary)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(20)
+        .background(Color.App.surface)
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.App.text.opacity(0.2), lineWidth: 1)
+        )
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+    }
+
+    @ViewBuilder
+    private var proStatusCard: some View {
+        HStack(spacing: 16) {
+            Image(systemName: "crown.fill")
+                .foregroundColor(.App.text)
+                .font(.system(size: 32))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("WhatNow Pro".localized(for: viewModel.selectedLanguage))
+                    .font(.appTitle)
+                    .foregroundColor(.App.text)
+
+                Text("Thank you for your support!".localized(for: viewModel.selectedLanguage))
+                    .font(.appBody)
+                    .foregroundColor(.App.textSecondary)
+            }
+
+            Spacer()
+
+            Image(systemName: "checkmark.seal.fill")
+                .foregroundColor(.App.text)
+                .font(.system(size: 28))
+        }
+        .padding(20)
+        .background(Color.App.surface)
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.App.text.opacity(0.2), lineWidth: 1)
+        )
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+    }
+
+    @ViewBuilder
+    private func benefitRow(icon: String, text: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .foregroundColor(.App.text)
+                .font(.system(size: 16))
+                .frame(width: 24)
+
+            Text(text)
+                .font(.appBody)
+                .foregroundColor(.App.textSecondary)
+        }
     }
 }
 
