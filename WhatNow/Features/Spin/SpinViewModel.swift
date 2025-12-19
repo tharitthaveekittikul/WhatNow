@@ -5,9 +5,9 @@
 //  ViewModel for Spin View - Handles all business logic
 //
 
+internal import Combine
 import Foundation
 import SwiftUI
-internal import Combine
 
 @MainActor
 final class SpinViewModel: ObservableObject {
@@ -78,7 +78,8 @@ final class SpinViewModel: ObservableObject {
     /// Display subtitle showing item count
     func displaySubtitle(for language: Language) -> String {
         if hasActiveFilters {
-            return "\(shuffledItems.count) / \(allItems.count) stores".localized(for: language)
+            return "\(shuffledItems.count) / \(allItems.count) stores"
+                .localized(for: language)
         } else {
             return "\(allItems.count) stores".localized(for: language)
         }
@@ -92,8 +93,11 @@ final class SpinViewModel: ObservableObject {
         packsService: PacksService? = nil
     ) {
         self.configuration = configuration
-        self.fetchMallStoresUseCase = fetchMallStoresUseCase ?? DependencyContainer.shared.fetchMallStoresUseCase
-        self.packsService = packsService ?? DependencyContainer.shared.packsService
+        self.fetchMallStoresUseCase =
+            fetchMallStoresUseCase
+            ?? DependencyContainer.shared.fetchMallStoresUseCase
+        self.packsService =
+            packsService ?? DependencyContainer.shared.packsService
     }
 
     // MARK: - Data Loading
@@ -124,17 +128,20 @@ final class SpinViewModel: ObservableObject {
             }
         } catch {
             errorMessage = error.localizedDescription
-            hasLoaded = false // Allow retry
+            hasLoaded = false  // Allow retry
         }
 
         isLoading = false
     }
 
     private func loadMallStores(mall: Mall) async throws {
-        let mallPack = try await fetchMallStoresUseCase.execute(mallId: mall.mallId)
+        let mallPack = try await fetchMallStoresUseCase.execute(
+            mallId: mall.mallId
+        )
 
         // Get all stores from the "all" category
-        if let allCategory = mallPack.categories.first(where: { $0.id == "all" }) {
+        if let allCategory = mallPack.categories.first(where: { $0.id == "all" }
+        ) {
             allItems = allCategory.items
         } else {
             throw SpinError.noCategoryFound
@@ -143,7 +150,10 @@ final class SpinViewModel: ObservableObject {
 
     private func loadFamousRestaurants() async {
         do {
-            logger.info("🌐 Fetching famous restaurants from API", category: .networking)
+            logger.info(
+                "🌐 Fetching famous restaurants from API",
+                category: .networking
+            )
             let pack = try await packsService.fetchFamousStores()
 
             // Convert FamousStoreItem to Store
@@ -156,22 +166,35 @@ final class SpinViewModel: ObservableObject {
                     priceRange: item.priceRange,
                     location: nil,
                     detailUrl: nil,
-                    mapUrl: nil
+                    mapUrl: nil,
+                    logoUrl: nil
                 )
             }
 
-            logger.info("✅ Loaded \(allItems.count) famous restaurants", category: .networking)
+            logger.info(
+                "✅ Loaded \(allItems.count) famous restaurants",
+                category: .networking
+            )
         } catch {
-            logger.error("❌ Failed to load famous restaurants: \(error)", category: .networking)
-            errorMessage = "Failed to load famous restaurants: \(error.localizedDescription)"
+            logger.error(
+                "❌ Failed to load famous restaurants: \(error)",
+                category: .networking
+            )
+            errorMessage =
+                "Failed to load famous restaurants: \(error.localizedDescription)"
         }
     }
 
     private func loadActivities(category: String) async {
         do {
             // category parameter is now the API category ID directly (e.g., "indoor-activities")
-            logger.info("🌐 Fetching activities for category: \(category)", category: .networking)
-            let pack = try await packsService.fetchActivities(categoryId: category)
+            logger.info(
+                "🌐 Fetching activities for category: \(category)",
+                category: .networking
+            )
+            let pack = try await packsService.fetchActivities(
+                categoryId: category
+            )
 
             // Convert ActivityItem to Store
             allItems = pack.items.map { item in
@@ -183,14 +206,22 @@ final class SpinViewModel: ObservableObject {
                     priceRange: item.priceRange,
                     location: nil,
                     detailUrl: nil,
-                    mapUrl: nil
+                    mapUrl: nil,
+                    logoUrl: nil
                 )
             }
 
-            logger.info("✅ Loaded \(allItems.count) activities for \(category)", category: .networking)
+            logger.info(
+                "✅ Loaded \(allItems.count) activities for \(category)",
+                category: .networking
+            )
         } catch {
-            logger.error("❌ Failed to load activities: \(error)", category: .networking)
-            errorMessage = "Failed to load activities: \(error.localizedDescription)"
+            logger.error(
+                "❌ Failed to load activities: \(error)",
+                category: .networking
+            )
+            errorMessage =
+                "Failed to load activities: \(error.localizedDescription)"
         }
     }
 
@@ -287,13 +318,17 @@ final class SpinViewModel: ObservableObject {
         generator.impactOccurred()
 
         if #available(iOS 17.0, *) {
-            withAnimation(.timingCurve(0.22, 0.61, 0.36, 1.0, duration: phase2Duration)) {
+            withAnimation(
+                .timingCurve(0.22, 0.61, 0.36, 1.0, duration: phase2Duration)
+            ) {
                 reelIndex = targetReelIndex
             } completion: {
                 self.onSpinComplete()
             }
         } else {
-            withAnimation(.timingCurve(0.22, 0.61, 0.36, 1.0, duration: phase2Duration)) {
+            withAnimation(
+                .timingCurve(0.22, 0.61, 0.36, 1.0, duration: phase2Duration)
+            ) {
                 reelIndex = targetReelIndex
             }
 
@@ -326,7 +361,9 @@ final class SpinViewModel: ObservableObject {
         let item: Store = shuffledItems[finalIndex]
         let itemName: String = item.displayName
 
-        logger.info("🎰 Spin result: \(itemName) (Index: \(finalIndex)/\(totalItems), Type: \(configuration.spinType.rawValue))")
+        logger.info(
+            "🎰 Spin result: \(itemName) (Index: \(finalIndex)/\(totalItems), Type: \(configuration.spinType.rawValue))"
+        )
 
         // Set selected item and show detail after delay
         selectedItem = item

@@ -111,8 +111,12 @@ struct MallCardContent: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            Text("🏬")
-                .font(.system(size: 40))
+            AsyncImageWithFallback(
+                imageUrl: mall.logoUrl,
+                fallbackIcon: "building.2.fill",
+                size: 56,
+                cornerRadius: 12
+            )
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(mall.name.localized(for: appEnvironment.currentLanguage))

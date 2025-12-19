@@ -15,6 +15,7 @@ struct Mall: Identifiable, Hashable, Sendable, Codable {
     let city: String
     let assetKey: String
     let tags: [String]?
+    let logoUrl: String?
 
     var id: String { mallId }
 }

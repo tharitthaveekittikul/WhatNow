@@ -25,31 +25,23 @@ struct StoreDetailView: View {
             VStack(spacing: 24) {
                 // Header
                 VStack(spacing: 12) {
-                    // Store icon/image placeholder
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        Color.App.accentSky.opacity(0.3),
-                                        Color.App.accentLavender.opacity(0.3)
-                                    ]),
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 120, height: 120)
-
-                        Image(systemName: "fork.knife.circle.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.App.text.opacity(0.7))
-                    }
+                    // Store logo or icon
+                    AsyncImageWithFallback(
+                        imageUrl: store.logoUrl,
+                        fallbackIcon: "fork.knife.circle.fill",
+                        size: 120,
+                        cornerRadius: 60
+                    )
 
                     // Store name
-                    Text(store.name.localized(for: appEnvironment.currentLanguage))
-                        .font(.appTitle)
-                        .foregroundColor(.App.text)
-                        .multilineTextAlignment(.center)
+                    Text(
+                        store.name.localized(
+                            for: appEnvironment.currentLanguage
+                        )
+                    )
+                    .font(.appTitle)
+                    .foregroundColor(.App.text)
+                    .multilineTextAlignment(.center)
 
                     // Price range
                     Text(store.priceRange.displayText)
@@ -64,7 +56,9 @@ struct StoreDetailView: View {
                     if let location = store.location {
                         InfoCard(
                             icon: "location.fill",
-                            title: "Location".localized(for: appEnvironment.currentLanguage),
+                            title: "Location".localized(
+                                for: appEnvironment.currentLanguage
+                            ),
                             content: location.displayText
                         )
                     }
@@ -72,8 +66,12 @@ struct StoreDetailView: View {
                     // Mall card
                     InfoCard(
                         icon: "building.2.fill",
-                        title: "Mall".localized(for: appEnvironment.currentLanguage),
-                        content: mall.name.localized(for: appEnvironment.currentLanguage)
+                        title: "Mall".localized(
+                            for: appEnvironment.currentLanguage
+                        ),
+                        content: mall.name.localized(
+                            for: appEnvironment.currentLanguage
+                        )
                     )
 
                     // Tags card
@@ -83,24 +81,35 @@ struct StoreDetailView: View {
                                 Image(systemName: "tag.fill")
                                     .font(.system(size: 16))
                                     .foregroundColor(.App.accentSky)
-                                Text("Categories".localized(for: appEnvironment.currentLanguage))
-                                    .font(.appHeadline)
-                                    .foregroundColor(.App.text)
+                                Text(
+                                    "Categories".localized(
+                                        for: appEnvironment.currentLanguage
+                                    )
+                                )
+                                .font(.appHeadline)
+                                .foregroundColor(.App.text)
                                 Spacer()
                             }
 
                             FlowLayout(spacing: 8) {
                                 ForEach(store.tags, id: \.self) { tag in
-                                    Text(tag.replacingOccurrences(of: "_", with: " ").capitalized)
-                                        .font(.appCaption)
-                                        .foregroundColor(.App.text)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 6)
-                                        .background(
-                                            Capsule()
-                                                .fill(Color.App.accentSky.opacity(0.3))
-                                        )
-                                        .fixedSize()
+                                    Text(
+                                        tag.replacingOccurrences(
+                                            of: "_",
+                                            with: " "
+                                        ).capitalized
+                                    )
+                                    .font(.appCaption)
+                                    .foregroundColor(.App.text)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(
+                                        Capsule()
+                                            .fill(
+                                                Color.App.accentSky.opacity(0.3)
+                                            )
+                                    )
+                                    .fixedSize()
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -108,8 +117,11 @@ struct StoreDetailView: View {
                         .padding(16)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color.App.surface)
+                            RoundedRectangle(
+                                cornerRadius: 16,
+                                style: .continuous
+                            )
+                            .fill(Color.App.surface)
                         )
                     }
                 }
@@ -117,9 +129,12 @@ struct StoreDetailView: View {
 
                 // Action buttons
                 VStack(spacing: 12) {
-                    if let mapUrl = store.mapUrl, let url = URL(string: mapUrl) {
+                    if let mapUrl = store.mapUrl, let url = URL(string: mapUrl)
+                    {
                         ActionButton(
-                            title: "Open in Maps".localized(for: appEnvironment.currentLanguage),
+                            title: "Open in Maps".localized(
+                                for: appEnvironment.currentLanguage
+                            ),
                             icon: "map.fill",
                             color: Color.App.accentSky
                         ) {
@@ -127,9 +142,13 @@ struct StoreDetailView: View {
                         }
                     }
 
-                    if let detailUrl = store.detailUrl, let url = URL(string: detailUrl) {
+                    if let detailUrl = store.detailUrl,
+                        let url = URL(string: detailUrl)
+                    {
                         ActionButton(
-                            title: "View Details".localized(for: appEnvironment.currentLanguage),
+                            title: "View Details".localized(
+                                for: appEnvironment.currentLanguage
+                            ),
                             icon: "info.circle.fill",
                             color: Color.App.accentLavender
                         ) {
@@ -142,15 +161,25 @@ struct StoreDetailView: View {
                             HStack(spacing: 8) {
                                 Image(systemName: "arrow.counterclockwise")
                                     .font(.system(size: 16, weight: .semibold))
-                                Text("Spin Again".localized(for: appEnvironment.currentLanguage))
-                                    .font(.appHeadline)
+                                Text(
+                                    "Spin Again".localized(
+                                        for: appEnvironment.currentLanguage
+                                    )
+                                )
+                                .font(.appHeadline)
                             }
                             .foregroundColor(.App.text)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .background(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .strokeBorder(Color.App.text.opacity(0.3), lineWidth: 2)
+                                RoundedRectangle(
+                                    cornerRadius: 16,
+                                    style: .continuous
+                                )
+                                .strokeBorder(
+                                    Color.App.text.opacity(0.3),
+                                    lineWidth: 2
+                                )
                             )
                         }
                         .buttonStyle(ScaleButtonStyle())
@@ -161,9 +190,11 @@ struct StoreDetailView: View {
             }
         }
         .background(Color.App.background.ignoresSafeArea())
-        .navigationTitle("Result".localized(for: appEnvironment.currentLanguage))
+        .navigationTitle(
+            "Result".localized(for: appEnvironment.currentLanguage)
+        )
         .navigationBarTitleDisplayMode(.inline)
-        .id(appEnvironment.languageDidChange) // Refresh when language changes
+        .id(appEnvironment.languageDidChange)  // Refresh when language changes
     }
 }
 
@@ -232,7 +263,10 @@ struct ScaleButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+            .animation(
+                .easeInOut(duration: 0.1),
+                value: configuration.isPressed
+            )
     }
 }
 
@@ -240,20 +274,40 @@ struct ScaleButtonStyle: ButtonStyle {
 struct FlowLayout: Layout {
     var spacing: CGFloat = 8
 
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let result = FlowResult(in: proposal.replacingUnspecifiedDimensions().width, subviews: subviews, spacing: spacing)
+    func sizeThatFits(
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) -> CGSize {
+        let result = FlowResult(
+            in: proposal.replacingUnspecifiedDimensions().width,
+            subviews: subviews,
+            spacing: spacing
+        )
         return result.size
     }
 
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let result = FlowResult(in: bounds.width, subviews: subviews, spacing: spacing)
+    func placeSubviews(
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) {
+        let result = FlowResult(
+            in: bounds.width,
+            subviews: subviews,
+            spacing: spacing
+        )
         var currentY = bounds.minY
         for (index, row) in result.rows.enumerated() {
             var x = bounds.minX
             for subviewIndex in row {
                 let subview = subviews[subviewIndex]
                 let size = subview.sizeThatFits(.unspecified)
-                subview.place(at: CGPoint(x: x, y: currentY), proposal: .unspecified)
+                subview.place(
+                    at: CGPoint(x: x, y: currentY),
+                    proposal: .unspecified
+                )
                 x += size.width + spacing
             }
             currentY += result.rowHeights[index] + spacing
@@ -281,14 +335,19 @@ struct FlowLayout: Layout {
                     currentX = 0
                 }
 
-                rowHeights[currentRow] = max(rowHeights[currentRow], size.height)
+                rowHeights[currentRow] = max(
+                    rowHeights[currentRow],
+                    size.height
+                )
                 rows[currentRow].append(index)
                 currentX += size.width + spacing
                 maxRowWidth = max(maxRowWidth, currentX - spacing)
             }
 
             // Calculate total height
-            let totalHeight = rowHeights.reduce(0, +) + CGFloat(max(0, rowHeights.count - 1)) * spacing
+            let totalHeight =
+                rowHeights.reduce(0, +) + CGFloat(max(0, rowHeights.count - 1))
+                * spacing
             size = CGSize(width: maxRowWidth, height: totalHeight)
         }
     }
@@ -303,9 +362,14 @@ struct FlowLayout: Layout {
                 displayName: "Bonchon Chicken",
                 tags: ["korean", "chicken"],
                 priceRange: .mid,
-                location: StoreLocation(floor: "5F", zone: "Food Court", unit: "A-12"),
+                location: StoreLocation(
+                    floor: "5F",
+                    zone: "Food Court",
+                    unit: "A-12"
+                ),
                 detailUrl: "https://example.com",
-                mapUrl: "https://maps.google.com"
+                mapUrl: "https://maps.google.com",
+                logoUrl: nil
             ),
             mall: Mall(
                 mallId: "siam-paragon",
@@ -313,7 +377,8 @@ struct FlowLayout: Layout {
                 displayName: "สยามพารากอน",
                 city: "Bangkok",
                 assetKey: "mall_paragon",
-                tags: ["bts"]
+                tags: ["bts"],
+                logoUrl: nil
             ),
             showSpinAgain: true
         )

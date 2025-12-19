@@ -25,7 +25,9 @@ struct ActivitySpinView: View {
             filteringEnabled: false,  // No filtering for activities (can be enabled later)
             spinType: .activity
         )
-        _viewModel = StateObject(wrappedValue: SpinViewModel(configuration: config))
+        _viewModel = StateObject(
+            wrappedValue: SpinViewModel(configuration: config)
+        )
     }
 
     var body: some View {
@@ -41,7 +43,10 @@ struct ActivitySpinView: View {
                 contentView
             }
         }
-        .navigationTitle(appEnvironment.currentLanguage == .thai ? category.nameTH : category.nameEN)
+        .navigationTitle(
+            appEnvironment.currentLanguage == .thai
+                ? category.nameTH : category.nameEN
+        )
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $viewModel.showItemDetail) {
             itemDetailSheet
@@ -94,8 +99,11 @@ struct ActivitySpinView: View {
         VStack(spacing: 16) {
             // Header
             SpinHeader(
-                title: appEnvironment.currentLanguage == .thai ? category.nameTH : category.nameEN,
-                subtitle: viewModel.displaySubtitle(for: appEnvironment.currentLanguage),
+                title: appEnvironment.currentLanguage == .thai
+                    ? category.nameTH : category.nameEN,
+                subtitle: viewModel.displaySubtitle(
+                    for: appEnvironment.currentLanguage
+                ),
                 filterCount: 0,
                 hasActiveFilters: false,
                 isDisabled: viewModel.filterControlsDisabled,
@@ -146,7 +154,8 @@ struct ActivitySpinView: View {
                         displayName: category.nameEN,
                         city: "Bangkok",
                         assetKey: category.assetKey ?? "activity",
-                        tags: []
+                        tags: [],
+                        logoUrl: nil
                     ),
                     showSpinAgain: true
                 )
@@ -168,7 +177,8 @@ struct ActivitySpinView: View {
                     displayName: category.nameEN,
                     city: "Bangkok",
                     assetKey: category.assetKey ?? "activity",
-                    tags: []
+                    tags: [],
+                    logoUrl: nil
                 )
             )
         }

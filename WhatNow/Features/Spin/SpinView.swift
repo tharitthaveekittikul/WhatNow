@@ -23,12 +23,16 @@ struct SpinView: View {
             filteringEnabled: true,
             spinType: .mallStores
         )
-        _viewModel = StateObject(wrappedValue: SpinViewModel(configuration: config))
+        _viewModel = StateObject(
+            wrappedValue: SpinViewModel(configuration: config)
+        )
     }
 
     /// Initialize with custom configuration (for future use cases)
     init(configuration: SpinConfiguration) {
-        _viewModel = StateObject(wrappedValue: SpinViewModel(configuration: configuration))
+        _viewModel = StateObject(
+            wrappedValue: SpinViewModel(configuration: configuration)
+        )
     }
 
     // MARK: - Body
@@ -46,7 +50,9 @@ struct SpinView: View {
                 contentView
             }
         }
-        .navigationTitle("Random Store".localized(for: appEnvironment.currentLanguage))
+        .navigationTitle(
+            "Random Store".localized(for: appEnvironment.currentLanguage)
+        )
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $viewModel.showItemDetail) {
             itemDetailSheet
@@ -72,7 +78,7 @@ struct SpinView: View {
             // Re-apply filters and shuffle when filter changes (synchronous)
             viewModel.applyFiltersAndShuffle()
         }
-        .id(appEnvironment.languageDidChange) // Refresh when language changes
+        .id(appEnvironment.languageDidChange)  // Refresh when language changes
     }
 
     // MARK: - Subviews
@@ -107,8 +113,12 @@ struct SpinView: View {
         VStack(spacing: 16) {
             // Header with filter and see all buttons
             SpinHeader(
-                title: viewModel.displayTitle(for: appEnvironment.currentLanguage),
-                subtitle: viewModel.displaySubtitle(for: appEnvironment.currentLanguage),
+                title: viewModel.displayTitle(
+                    for: appEnvironment.currentLanguage
+                ),
+                subtitle: viewModel.displaySubtitle(
+                    for: appEnvironment.currentLanguage
+                ),
                 filterCount: viewModel.activeFilterCount,
                 hasActiveFilters: viewModel.hasActiveFilters,
                 isDisabled: viewModel.filterControlsDisabled,
@@ -154,7 +164,7 @@ struct SpinView: View {
             reelIndex: $viewModel.reelIndex
         )
         .padding(.vertical, 16)
-        .id(viewModel.shuffledItems.map { $0.id }.joined()) // Force refresh when stores change
+        .id(viewModel.shuffledItems.map { $0.id }.joined())  // Force refresh when stores change
     }
 
     private var emptyStateView: some View {
@@ -163,19 +173,27 @@ struct SpinView: View {
                 .font(.system(size: 48))
                 .foregroundColor(.orange)
 
-            Text("No stores match filters".localized(for: appEnvironment.currentLanguage))
-                .font(.appTitle3)
-                .foregroundColor(.App.text)
-                .multilineTextAlignment(.center)
+            Text(
+                "No stores match filters".localized(
+                    for: appEnvironment.currentLanguage
+                )
+            )
+            .font(.appTitle3)
+            .foregroundColor(.App.text)
+            .multilineTextAlignment(.center)
 
-            Text("Try adjusting your filters".localized(for: appEnvironment.currentLanguage))
-                .font(.appCallout)
-                .foregroundColor(.App.textSecondary)
-                .multilineTextAlignment(.center)
+            Text(
+                "Try adjusting your filters".localized(
+                    for: appEnvironment.currentLanguage
+                )
+            )
+            .font(.appCallout)
+            .foregroundColor(.App.textSecondary)
+            .multilineTextAlignment(.center)
         }
         .padding()
         .frame(maxWidth: .infinity)
-        .frame(height: CGFloat(5) * 80 + 32) // Match ReelPicker height
+        .frame(height: CGFloat(5) * 80 + 32)  // Match ReelPicker height
     }
 
     // MARK: - Sheet Views
@@ -183,7 +201,8 @@ struct SpinView: View {
     @ViewBuilder
     private var itemDetailSheet: some View {
         if let store = viewModel.selectedItem,
-           case .mall(let mall) = viewModel.configuration.context {
+            case .mall(let mall) = viewModel.configuration.context
+        {
             NavigationStack {
                 StoreDetailView(store: store, mall: mall, showSpinAgain: true)
             }
@@ -215,7 +234,8 @@ struct SpinView: View {
                 displayName: "สยามพารากอน",
                 city: "Bangkok",
                 assetKey: "mall_paragon",
-                tags: ["bts", "tourist"]
+                tags: ["bts", "tourist"],
+                logoUrl: ""
             )
         )
     }

@@ -20,7 +20,9 @@ struct FamousStoresSpinView: View {
             filteringEnabled: false,  // No filtering for famous restaurants
             spinType: .famousRestaurant
         )
-        _viewModel = StateObject(wrappedValue: SpinViewModel(configuration: config))
+        _viewModel = StateObject(
+            wrappedValue: SpinViewModel(configuration: config)
+        )
     }
 
     var body: some View {
@@ -36,7 +38,9 @@ struct FamousStoresSpinView: View {
                 contentView
             }
         }
-        .navigationTitle("Famous Restaurants".localized(for: appEnvironment.currentLanguage))
+        .navigationTitle(
+            "Famous Restaurants".localized(for: appEnvironment.currentLanguage)
+        )
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $viewModel.showItemDetail) {
             itemDetailSheet
@@ -89,8 +93,12 @@ struct FamousStoresSpinView: View {
         VStack(spacing: 16) {
             // Header
             SpinHeader(
-                title: viewModel.displayTitle(for: appEnvironment.currentLanguage),
-                subtitle: viewModel.displaySubtitle(for: appEnvironment.currentLanguage),
+                title: viewModel.displayTitle(
+                    for: appEnvironment.currentLanguage
+                ),
+                subtitle: viewModel.displaySubtitle(
+                    for: appEnvironment.currentLanguage
+                ),
                 filterCount: 0,
                 hasActiveFilters: false,
                 isDisabled: viewModel.filterControlsDisabled,
@@ -134,11 +142,15 @@ struct FamousStoresSpinView: View {
                     store: store,
                     mall: Mall(
                         mallId: "famous",
-                        name: LocalizedName(th: "ร้านดัง", en: "Famous Restaurants"),
+                        name: LocalizedName(
+                            th: "ร้านดัง",
+                            en: "Famous Restaurants"
+                        ),
                         displayName: "Famous Restaurants",
                         city: "Bangkok",
                         assetKey: "famous",
-                        tags: []
+                        tags: [],
+                        logoUrl: nil
                     ),
                     showSpinAgain: true
                 )
@@ -157,7 +169,8 @@ struct FamousStoresSpinView: View {
                     displayName: "Famous Restaurants",
                     city: "Bangkok",
                     assetKey: "famous",
-                    tags: []
+                    tags: [],
+                    logoUrl: nil
                 )
             )
         }

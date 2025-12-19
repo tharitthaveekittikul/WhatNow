@@ -267,7 +267,8 @@ private struct PriceRangeFilterButton: View {
                 priceRange: .mid,
                 location: nil,
                 detailUrl: nil,
-                mapUrl: nil
+                mapUrl: nil,
+                logoUrl: nil
             ),
             Store(
                 id: "2",
@@ -277,7 +278,8 @@ private struct PriceRangeFilterButton: View {
                 priceRange: .mid,
                 location: nil,
                 detailUrl: nil,
-                mapUrl: nil
+                mapUrl: nil,
+                logoUrl: nil
             ),
             Store(
                 id: "3",
@@ -287,7 +289,8 @@ private struct PriceRangeFilterButton: View {
                 priceRange: .premium,
                 location: nil,
                 detailUrl: nil,
-                mapUrl: nil
+                mapUrl: nil,
+                logoUrl: nil
             )
         ],
         filter: .constant(StoreFilter())

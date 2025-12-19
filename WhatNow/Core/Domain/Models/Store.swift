@@ -17,6 +17,7 @@ struct Store: Identifiable, Hashable, Sendable, Codable {
     let location: StoreLocation?
     let detailUrl: String?
     let mapUrl: String?
+    let logoUrl: String?
 }
 
 /// Store location information

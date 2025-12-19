@@ -174,7 +174,7 @@ struct ReelPicker: View {
                 priceRange: .mid,
                 location: nil,
                 detailUrl: nil,
-                mapUrl: nil
+                mapUrl: nil, logoUrl: nil
             ),
             Store(
                 id: "2",
@@ -184,7 +184,7 @@ struct ReelPicker: View {
                 priceRange: .mid,
                 location: nil,
                 detailUrl: nil,
-                mapUrl: nil
+                mapUrl: nil, logoUrl: nil
             ),
             Store(
                 id: "3",
@@ -194,7 +194,7 @@ struct ReelPicker: View {
                 priceRange: .premium,
                 location: nil,
                 detailUrl: nil,
-                mapUrl: nil
+                mapUrl: nil, logoUrl: nil
             )
         ],
         isSpinning: false,

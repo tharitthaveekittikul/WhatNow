@@ -19,14 +19,19 @@ struct StoreListView: View {
             return stores
         } else {
             return stores.filter { store in
-                store.displayName.localizedCaseInsensitiveContains(searchText) ||
-                (store.name.th?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-                (store.name.en?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-                store.tags.contains { tag in
-                    tag.replacingOccurrences(of: "_", with: " ")
+                store.displayName.localizedCaseInsensitiveContains(searchText)
+                    || (store.name.th?.localizedCaseInsensitiveContains(
+                        searchText
+                    ) ?? false)
+                    || (store.name.en?.localizedCaseInsensitiveContains(
+                        searchText
+                    ) ?? false)
+                    || store.tags.contains { tag in
+                        tag.replacingOccurrences(of: "_", with: " ")
+                            .localizedCaseInsensitiveContains(searchText)
+                    }
+                    || store.priceRange.displayText
                         .localizedCaseInsensitiveContains(searchText)
-                } ||
-                store.priceRange.displayText.localizedCaseInsensitiveContains(searchText)
             }
         }
     }
@@ -48,12 +53,20 @@ struct StoreListView: View {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 48))
                             .foregroundColor(.App.textTertiary)
-                        Text("No stores found".localized(for: appEnvironment.currentLanguage))
-                            .font(.appHeadline)
-                            .foregroundColor(.App.textSecondary)
-                        Text("Try a different search term".localized(for: appEnvironment.currentLanguage))
-                            .font(.appCallout)
-                            .foregroundColor(.App.textTertiary)
+                        Text(
+                            "No stores found".localized(
+                                for: appEnvironment.currentLanguage
+                            )
+                        )
+                        .font(.appHeadline)
+                        .foregroundColor(.App.textSecondary)
+                        Text(
+                            "Try a different search term".localized(
+                                for: appEnvironment.currentLanguage
+                            )
+                        )
+                        .font(.appCallout)
+                        .foregroundColor(.App.textTertiary)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.top, 60)
@@ -63,9 +76,16 @@ struct StoreListView: View {
             .padding(.vertical, 16)
         }
         .background(Color.App.background.ignoresSafeArea())
-        .navigationTitle("All Stores".localized(for: appEnvironment.currentLanguage))
+        .navigationTitle(
+            "All Stores".localized(for: appEnvironment.currentLanguage)
+        )
         .navigationBarTitleDisplayMode(.inline)
-        .searchable(text: $searchText, prompt: Text("Search stores".localized(for: appEnvironment.currentLanguage)))
+        .searchable(
+            text: $searchText,
+            prompt: Text(
+                "Search stores".localized(for: appEnvironment.currentLanguage)
+            )
+        )
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: { dismiss() }) {
@@ -75,7 +95,7 @@ struct StoreListView: View {
                 }
             }
         }
-        .id(appEnvironment.languageDidChange) // Refresh when language changes
+        .id(appEnvironment.languageDidChange)  // Refresh when language changes
     }
 }
 
@@ -85,35 +105,26 @@ struct StoreListRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            // Icon with gradient
-            ZStack {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                Color.App.accentSky.opacity(0.25),
-                                Color.App.accentLavender.opacity(0.25)
-                            ]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 64, height: 64)
-
-                Image(systemName: "fork.knife.circle.fill")
-                    .font(.system(size: 28, weight: .medium))
-                    .foregroundColor(.App.text.opacity(0.7))
-                    .symbolRenderingMode(.hierarchical)
-            }
+            // Store logo or icon
+            AsyncImageWithFallback(
+                imageUrl: store.logoUrl,
+                fallbackIcon: "fork.knife.circle.fill",
+                size: 64,
+                cornerRadius: 14
+            )
 
             // Store info
             VStack(alignment: .leading, spacing: 8) {
                 // Name and price
                 HStack(spacing: 8) {
-                    Text(store.name.localized(for: appEnvironment.currentLanguage))
-                        .font(.appHeadline)
-                        .foregroundColor(.App.text)
-                        .lineLimit(1)
+                    Text(
+                        store.name.localized(
+                            for: appEnvironment.currentLanguage
+                        )
+                    )
+                    .font(.appHeadline)
+                    .foregroundColor(.App.text)
+                    .lineLimit(1)
 
                     Spacer()
                 }
@@ -125,34 +136,40 @@ struct StoreListRow: View {
                             Image(systemName: "location.fill")
                                 .font(.appCaption2)
                                 .foregroundColor(.App.textSecondary)
-                            Text("Floor \(floor)".localized(for: appEnvironment.currentLanguage))
-                                .font(.appCallout)
-                                .foregroundColor(.App.textSecondary)
+                            Text(
+                                "Floor \(floor)".localized(
+                                    for: appEnvironment.currentLanguage
+                                )
+                            )
+                            .font(.appCallout)
+                            .foregroundColor(.App.textSecondary)
                         }
                     }
-                    
+
                     Divider()
-                    
+
                     Text("\(store.priceRange.displayText)")
                         .font(.appCallout)
                         .foregroundColor(.App.textSecondary.opacity(0.8))
                         .fontWeight(.medium)
                 }
-                
 
                 // Tags
                 if !store.tags.isEmpty {
                     HStack(spacing: 6) {
                         ForEach(store.tags.prefix(2), id: \.self) { tag in
-                            Text(tag.replacingOccurrences(of: "_", with: " ").capitalized)
-                                .font(.appCaption2)
-                                .foregroundColor(.App.textSecondary)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(
-                                    Capsule()
-                                        .fill(Color.App.accentSky.opacity(0.15))
-                                )
+                            Text(
+                                tag.replacingOccurrences(of: "_", with: " ")
+                                    .capitalized
+                            )
+                            .font(.appCaption2)
+                            .foregroundColor(.App.textSecondary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                Capsule()
+                                    .fill(Color.App.accentSky.opacity(0.15))
+                            )
                         }
 
                         if store.tags.count > 2 {
@@ -174,7 +191,12 @@ struct StoreListRow: View {
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(Color.App.surface)
-                .shadow(color: Color.App.text.opacity(0.04), radius: 8, x: 0, y: 2)
+                .shadow(
+                    color: Color.App.text.opacity(0.04),
+                    radius: 8,
+                    x: 0,
+                    y: 2
+                )
         )
     }
 }
@@ -191,7 +213,8 @@ struct StoreListRow: View {
                     priceRange: .mid,
                     location: StoreLocation(floor: "5F", zone: nil, unit: nil),
                     detailUrl: nil,
-                    mapUrl: nil
+                    mapUrl: nil,
+                    logoUrl: ""
                 ),
                 Store(
                     id: "2",
@@ -201,7 +224,8 @@ struct StoreListRow: View {
                     priceRange: .mid,
                     location: StoreLocation(floor: "3F", zone: nil, unit: nil),
                     detailUrl: nil,
-                    mapUrl: nil
+                    mapUrl: nil,
+                    logoUrl: ""
                 ),
                 Store(
                     id: "3",
@@ -211,8 +235,9 @@ struct StoreListRow: View {
                     priceRange: .premium,
                     location: StoreLocation(floor: "4F", zone: nil, unit: nil),
                     detailUrl: nil,
-                    mapUrl: nil
-                )
+                    mapUrl: nil,
+                    logoUrl: ""
+                ),
             ],
             mall: Mall(
                 mallId: "siam-paragon",
@@ -220,7 +245,8 @@ struct StoreListRow: View {
                 displayName: "สยามพารากอน",
                 city: "Bangkok",
                 assetKey: "mall_paragon",
-                tags: ["bts"]
+                tags: ["bts"],
+                logoUrl: ""
             )
         )
     }
