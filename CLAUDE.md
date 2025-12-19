@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Documentation Policy
+
+**IMPORTANT**:
+- **DO NOT** create any other markdown (.md) files in this project
+- **DO NOT** create README files, documentation files, or any other .md files
+- **ONLY** update this CLAUDE.md file when documentation changes are needed
+- All project documentation should be consolidated in this single CLAUDE.md file
+
 ## Project Overview
 
 WhatNow is an iOS decision-helper app built with SwiftUI that helps users decide what to eat or what activity to do using a slot-machine style random picker. The app fetches data from a backend API and displays restaurants from various malls in Thailand.
