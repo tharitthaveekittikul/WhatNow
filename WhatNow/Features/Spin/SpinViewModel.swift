@@ -108,11 +108,9 @@ final class SpinViewModel: ObservableObject {
             case .mall(let mall):
                 try await loadMallStores(mall: mall)
             case .famousRestaurant:
-                // TODO: Implement when famous restaurant API is ready
-                errorMessage = "Famous restaurant feature coming soon"
-            case .activity:
-                // TODO: Implement when activity API is ready
-                errorMessage = "Activity feature coming soon"
+                await loadFamousRestaurants()
+            case .activity(let category):
+                await loadActivities(category: category)
             }
 
             // Initial shuffle after loading
@@ -137,6 +135,262 @@ final class SpinViewModel: ObservableObject {
             allItems = allCategory.items
         } else {
             throw SpinError.noCategoryFound
+        }
+    }
+
+    private func loadFamousRestaurants() async {
+        // Simulate API delay
+        try? await Task.sleep(for: .seconds(0.5))
+
+        // Mock famous restaurant data
+        allItems = [
+            Store(
+                id: "somtam-nua",
+                name: LocalizedName(th: "ส้มตำนัว", en: "Somtam Nua"),
+                displayName: "Somtam Nua",
+                tags: ["thai", "issan", "popular"],
+                priceRange: .budget,
+                location: StoreLocation(floor: "G", zone: "Food Court", unit: "FC-12"),
+                detailUrl: nil,
+                mapUrl: nil
+            ),
+            Store(
+                id: "thipsamai",
+                name: LocalizedName(th: "ทิพย์สมัย", en: "Thipsamai Pad Thai"),
+                displayName: "Thipsamai Pad Thai",
+                tags: ["thai", "pad_thai", "legendary"],
+                priceRange: .budget,
+                location: nil,
+                detailUrl: nil,
+                mapUrl: nil
+            ),
+            Store(
+                id: "jay-fai",
+                name: LocalizedName(th: "เจ๊ไฝ", en: "Jay Fai"),
+                displayName: "Jay Fai",
+                tags: ["thai", "seafood", "michelin"],
+                priceRange: .premium,
+                location: nil,
+                detailUrl: nil,
+                mapUrl: nil
+            ),
+            Store(
+                id: "kuang-heng",
+                name: LocalizedName(th: "ก๋วยเตี๋ยวเรือกวงเฮง", en: "Kuang Heng Boat Noodles"),
+                displayName: "Kuang Heng",
+                tags: ["thai", "noodles", "street_food"],
+                priceRange: .budget,
+                location: nil,
+                detailUrl: nil,
+                mapUrl: nil
+            ),
+            Store(
+                id: "mango-tango",
+                name: LocalizedName(th: "มะม่วงแทงโก้", en: "Mango Tango"),
+                displayName: "Mango Tango",
+                tags: ["dessert", "mango", "famous"],
+                priceRange: .mid,
+                location: nil,
+                detailUrl: nil,
+                mapUrl: nil
+            ),
+            Store(
+                id: "srettha",
+                name: LocalizedName(th: "เศรษฐา", en: "Srettha"),
+                displayName: "Srettha",
+                tags: ["thai", "chicken_rice", "popular"],
+                priceRange: .budget,
+                location: nil,
+                detailUrl: nil,
+                mapUrl: nil
+            ),
+            Store(
+                id: "yentafo-convent",
+                name: LocalizedName(th: "เย็นตาโฟคอนแวนต์", en: "Yen Ta Fo Convent"),
+                displayName: "Yen Ta Fo Convent",
+                tags: ["thai", "noodles", "pink_soup"],
+                priceRange: .budget,
+                location: nil,
+                detailUrl: nil,
+                mapUrl: nil
+            ),
+            Store(
+                id: "krua-apsorn",
+                name: LocalizedName(th: "ครัวอัปษร", en: "Krua Apsorn"),
+                displayName: "Krua Apsorn",
+                tags: ["thai", "royal_cuisine", "famous"],
+                priceRange: .mid,
+                location: nil,
+                detailUrl: nil,
+                mapUrl: nil
+            )
+        ]
+    }
+
+    private func loadActivities(category: String) async {
+        // Simulate API delay
+        try? await Task.sleep(for: .seconds(0.5))
+
+        // Mock activity data based on category
+        if category == "Indoor Activities" {
+            allItems = [
+                Store(
+                    id: "bowling",
+                    name: LocalizedName(th: "โบว์ลิ่ง", en: "Bowling"),
+                    displayName: "Bowling",
+                    tags: ["sports", "fun", "group"],
+                    priceRange: .mid,
+                    location: nil,
+                    detailUrl: nil,
+                    mapUrl: nil
+                ),
+                Store(
+                    id: "karaoke",
+                    name: LocalizedName(th: "คาราโอเกะ", en: "Karaoke"),
+                    displayName: "Karaoke",
+                    tags: ["music", "fun", "group"],
+                    priceRange: .mid,
+                    location: nil,
+                    detailUrl: nil,
+                    mapUrl: nil
+                ),
+                Store(
+                    id: "escape-room",
+                    name: LocalizedName(th: "ห้องหนีตาย", en: "Escape Room"),
+                    displayName: "Escape Room",
+                    tags: ["puzzle", "team", "adventure"],
+                    priceRange: .mid,
+                    location: nil,
+                    detailUrl: nil,
+                    mapUrl: nil
+                ),
+                Store(
+                    id: "arcade",
+                    name: LocalizedName(th: "เกมส์", en: "Arcade Games"),
+                    displayName: "Arcade Games",
+                    tags: ["games", "fun", "casual"],
+                    priceRange: .budget,
+                    location: nil,
+                    detailUrl: nil,
+                    mapUrl: nil
+                ),
+                Store(
+                    id: "billiards",
+                    name: LocalizedName(th: "บิลเลียด", en: "Billiards"),
+                    displayName: "Billiards",
+                    tags: ["sports", "chill", "casual"],
+                    priceRange: .mid,
+                    location: nil,
+                    detailUrl: nil,
+                    mapUrl: nil
+                )
+            ]
+        } else if category == "Outdoor Activities" {
+            allItems = [
+                Store(
+                    id: "park-walk",
+                    name: LocalizedName(th: "เดินสวน", en: "Park Walk"),
+                    displayName: "Park Walk",
+                    tags: ["nature", "relaxing", "free"],
+                    priceRange: .budget,
+                    location: nil,
+                    detailUrl: nil,
+                    mapUrl: nil
+                ),
+                Store(
+                    id: "cycling",
+                    name: LocalizedName(th: "ปั่นจักรยาน", en: "Cycling"),
+                    displayName: "Cycling",
+                    tags: ["sports", "exercise", "outdoor"],
+                    priceRange: .budget,
+                    location: nil,
+                    detailUrl: nil,
+                    mapUrl: nil
+                ),
+                Store(
+                    id: "night-market",
+                    name: LocalizedName(th: "ตลาดนัด", en: "Night Market"),
+                    displayName: "Night Market",
+                    tags: ["shopping", "food", "local"],
+                    priceRange: .budget,
+                    location: nil,
+                    detailUrl: nil,
+                    mapUrl: nil
+                ),
+                Store(
+                    id: "temple-tour",
+                    name: LocalizedName(th: "ชมวัด", en: "Temple Tour"),
+                    displayName: "Temple Tour",
+                    tags: ["culture", "sightseeing", "peaceful"],
+                    priceRange: .budget,
+                    location: nil,
+                    detailUrl: nil,
+                    mapUrl: nil
+                ),
+                Store(
+                    id: "river-cruise",
+                    name: LocalizedName(th: "ล่องเรือ", en: "River Cruise"),
+                    displayName: "River Cruise",
+                    tags: ["sightseeing", "romantic", "relaxing"],
+                    priceRange: .mid,
+                    location: nil,
+                    detailUrl: nil,
+                    mapUrl: nil
+                )
+            ]
+        } else if category == "Entertainment" {
+            allItems = [
+                Store(
+                    id: "cinema",
+                    name: LocalizedName(th: "ดูหนัง", en: "Cinema"),
+                    displayName: "Cinema",
+                    tags: ["movie", "indoor", "relaxing"],
+                    priceRange: .mid,
+                    location: nil,
+                    detailUrl: nil,
+                    mapUrl: nil
+                ),
+                Store(
+                    id: "live-music",
+                    name: LocalizedName(th: "ดนตรีสด", en: "Live Music"),
+                    displayName: "Live Music",
+                    tags: ["music", "nightlife", "fun"],
+                    priceRange: .mid,
+                    location: nil,
+                    detailUrl: nil,
+                    mapUrl: nil
+                ),
+                Store(
+                    id: "theater",
+                    name: LocalizedName(th: "ละคร", en: "Theater Show"),
+                    displayName: "Theater Show",
+                    tags: ["performance", "culture", "art"],
+                    priceRange: .premium,
+                    location: nil,
+                    detailUrl: nil,
+                    mapUrl: nil
+                ),
+                Store(
+                    id: "comedy-club",
+                    name: LocalizedName(th: "คอมเมดี้โชว์", en: "Comedy Club"),
+                    displayName: "Comedy Club",
+                    tags: ["comedy", "nightlife", "fun"],
+                    priceRange: .mid,
+                    location: nil,
+                    detailUrl: nil,
+                    mapUrl: nil
+                ),
+                Store(
+                    id: "rooftop-bar",
+                    name: LocalizedName(th: "รูฟท็อปบาร์", en: "Rooftop Bar"),
+                    displayName: "Rooftop Bar",
+                    tags: ["drinks", "view", "romantic"],
+                    priceRange: .premium,
+                    location: nil,
+                    detailUrl: nil,
+                    mapUrl: nil
+                )
+            ]
         }
     }
 

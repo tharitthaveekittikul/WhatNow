@@ -50,3 +50,28 @@ enum FoodSourceType: String, CaseIterable, Identifiable {
         }
     }
 }
+
+/// Activity source type
+enum ActivitySourceType: String, CaseIterable, Identifiable {
+    case indoor = "Indoor Activities"
+    case outdoor = "Outdoor Activities"
+    case entertainment = "Entertainment"
+
+    var id: String { rawValue }
+
+    func title(for language: Language) -> String {
+        switch self {
+        case .indoor: return "Indoor Activities".localized(for: language)
+        case .outdoor: return "Outdoor Activities".localized(for: language)
+        case .entertainment: return "Entertainment".localized(for: language)
+        }
+    }
+
+    var emoji: String {
+        switch self {
+        case .indoor: return "🏢"
+        case .outdoor: return "🏞️"
+        case .entertainment: return "🎬"
+        }
+    }
+}

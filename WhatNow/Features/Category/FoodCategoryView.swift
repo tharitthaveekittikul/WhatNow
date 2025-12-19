@@ -60,4 +60,5 @@ struct FoodCategoryView: View {
     NavigationStack {
         FoodCategoryView()
     }
+    .environmentObject(AppEnvironment())
 }

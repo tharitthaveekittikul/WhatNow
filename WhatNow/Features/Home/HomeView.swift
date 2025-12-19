@@ -85,11 +85,13 @@ struct HomeView: View {
         case .foodCategory:
             FoodCategoryView()
         case .activityCategory:
-            Text("Activities Coming Soon!".localized(for: appEnvironment.currentLanguage)).font(.appTitle)
+            ActivityCategoryView()
         case .mallSelection:
             MallSelectionView()
         case .famousStores:
-            Text("Famous Stores Coming Soon!".localized(for: appEnvironment.currentLanguage)).font(.appTitle)
+            FamousStoresSpinView()
+        case .activitySpin(let type):
+            ActivitySpinView(activityType: type)
         case .spin(let mall):
             SpinView(mall: mall)
         case .settings:
@@ -125,4 +127,5 @@ struct DecisionCardContent: View {
 
 #Preview {
     HomeView()
+        .environmentObject(AppEnvironment())
 }
