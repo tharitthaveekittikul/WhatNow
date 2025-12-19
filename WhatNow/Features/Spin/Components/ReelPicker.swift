@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ReelPicker: View {
     let items: [Store]
-    @Binding var isSpinning: Bool
+    let isSpinning: Bool
     @Binding var reelIndex: Int
     @EnvironmentObject private var appEnvironment: AppEnvironment
 
@@ -197,8 +197,9 @@ struct ReelPicker: View {
                 mapUrl: nil
             )
         ],
-        isSpinning: .constant(false),
+        isSpinning: false,
         reelIndex: .constant(0)
     )
     .background(Color.App.background)
+    .environmentObject(AppEnvironment())
 }
