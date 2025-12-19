@@ -204,13 +204,13 @@ private struct CategoryFilterButton: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(isSelected ? Color(light: Color(hex: "4A90E2"), dark: Color(hex: "5BA3F5")) : Color.App.surface)
+                    .fill(isSelected ? Color.App.accentSky : Color.App.surface)
             )
-            .foregroundColor(isSelected ? .white : .App.text)
+            .foregroundColor(isSelected ? .App.text : .App.text)
             .overlay(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .strokeBorder(
-                        isSelected ? Color(light: Color(hex: "4A90E2"), dark: Color(hex: "5BA3F5")) : Color.App.text.opacity(0.2),
+                        isSelected ? Color.App.accentSky : Color.App.text.opacity(0.2),
                         lineWidth: isSelected ? 2 : 1
                     )
             )
@@ -241,13 +241,13 @@ private struct PriceRangeFilterButton: View {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(isSelected ? Color(light: Color(hex: "FF8C42"), dark: Color(hex: "FFA566")) : Color.App.surface)
+                    .fill(isSelected ? Color.App.accentWarm : Color.App.surface)
             )
-            .foregroundColor(isSelected ? .white : .App.text)
+            .foregroundColor(isSelected ? .App.text : .App.text)
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .strokeBorder(
-                        isSelected ? Color(light: Color(hex: "FF8C42"), dark: Color(hex: "FFA566")) : Color.App.text.opacity(0.2),
+                        isSelected ? Color.App.accentWarm : Color.App.text.opacity(0.2),
                         lineWidth: isSelected ? 2 : 1
                     )
             )

@@ -12,12 +12,12 @@ struct FilterBadge: View {
 
     var body: some View {
         Circle()
-            .fill(Color(light: Color(hex: "4A90E2"), dark: Color(hex: "5BA3F5")))
+            .fill(Color.App.accentSky)
             .frame(width: 18, height: 18)
             .overlay(
                 Text("\(count)")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.App.text)
             )
     }
 }

@@ -98,7 +98,7 @@ struct StoreDetailView: View {
                                         .padding(.vertical, 6)
                                         .background(
                                             Capsule()
-                                                .fill(Color.App.accentSky.opacity(0.2))
+                                                .fill(Color.App.accentSky.opacity(0.3))
                                         )
                                         .fixedSize()
                                 }
@@ -121,7 +121,7 @@ struct StoreDetailView: View {
                         ActionButton(
                             title: "Open in Maps".localized(for: appEnvironment.currentLanguage),
                             icon: "map.fill",
-                            color: Color(light: Color(hex: "4A90E2"), dark: Color(hex: "5BA3F5"))
+                            color: Color.App.accentSky
                         ) {
                             UIApplication.shared.open(url)
                         }
@@ -131,7 +131,7 @@ struct StoreDetailView: View {
                         ActionButton(
                             title: "View Details".localized(for: appEnvironment.currentLanguage),
                             icon: "info.circle.fill",
-                            color: Color(light: Color(hex: "9B6FD6"), dark: Color(hex: "B494E5"))
+                            color: Color.App.accentLavender
                         ) {
                             UIApplication.shared.open(url)
                         }
@@ -215,7 +215,7 @@ struct ActionButton: View {
                 Text(title)
                     .font(.appHeadline)
             }
-            .foregroundColor(.white)
+            .foregroundColor(.App.text)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background(
@@ -318,4 +318,5 @@ struct FlowLayout: Layout {
             showSpinAgain: true
         )
     }
+    .environmentObject(AppEnvironment())
 }

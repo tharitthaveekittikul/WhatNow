@@ -23,7 +23,7 @@ struct FilterChipsView: View {
                     ForEach(Array(filter.selectedCategories).sorted(), id: \.self) { category in
                         FilterChip(
                             text: category.replacingOccurrences(of: "_", with: " ").capitalized,
-                            color: Color(light: Color(hex: "4A90E2"), dark: Color(hex: "5BA3F5"))
+                            color: Color.App.accentSky
                         ) {
                             onRemoveCategory(category)
                         }
@@ -33,7 +33,7 @@ struct FilterChipsView: View {
                     ForEach(Array(filter.selectedPriceRanges).sorted(by: { $0.rawValue < $1.rawValue }), id: \.self) { priceRange in
                         FilterChip(
                             text: priceRange.displayText,
-                            color: Color(light: Color(hex: "FF8C42"), dark: Color(hex: "FFA566"))
+                            color: Color.App.accentWarm
                         ) {
                             onRemovePriceRange(priceRange)
                         }
@@ -70,12 +70,12 @@ private struct FilterChip: View {
         HStack(spacing: 6) {
             Text(text)
                 .font(.appCaption)
-                .foregroundColor(.white)
+                .foregroundColor(.App.text)
 
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 14))
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundColor(.App.text.opacity(0.8))
             }
         }
         .padding(.horizontal, 12)

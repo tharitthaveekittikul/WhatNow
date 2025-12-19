@@ -28,7 +28,7 @@ struct SpinHeader: View {
                     ZStack(alignment: .topTrailing) {
                         Image(systemName: hasActiveFilters ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
                             .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(hasActiveFilters ? Color(light: Color(hex: "4A90E2"), dark: Color(hex: "5BA3F5")) : .App.text)
+                            .foregroundColor(hasActiveFilters ? Color.App.accentSky : .App.text)
                             .frame(width: 44, height: 44)
                             .background(
                                 Circle()
@@ -55,7 +55,7 @@ struct SpinHeader: View {
 
                 Text(subtitle)
                     .font(hasActiveFilters ? .appCaption : .appCallout)
-                    .foregroundColor(hasActiveFilters ? Color(light: Color(hex: "4A90E2"), dark: Color(hex: "5BA3F5")) : .App.textSecondary)
+                    .foregroundColor(hasActiveFilters ? Color.App.accentSky : .App.textSecondary)
             }
 
             Spacer()

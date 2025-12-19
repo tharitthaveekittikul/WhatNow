@@ -224,4 +224,5 @@ struct StoreListRow: View {
             )
         )
     }
+    .environmentObject(AppEnvironment())
 }
