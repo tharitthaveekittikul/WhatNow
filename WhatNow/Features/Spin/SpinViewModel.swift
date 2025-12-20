@@ -395,7 +395,8 @@ final class SpinViewModel: ObservableObject {
             gradientRotation = 0
         }
 
-        // Calculate final selected item from reelIndex
+        // PERFORMANCE: Precompute final selected item immediately
+        // This ensures the result is ready when we present the sheet (no delay from computation)
         let totalItems = shuffledItems.count
         guard totalItems > 0 else {
             logger.error("❌ No items available after spin!")
@@ -410,11 +411,13 @@ final class SpinViewModel: ObservableObject {
             "🎰 Spin result: \(itemName) (Index: \(finalIndex)/\(totalItems), Type: \(configuration.spinType.rawValue))"
         )
 
-        // Set selected item
+        // Set selected item (precomputed, ready for sheet)
         selectedItem = item
 
-        // Show result after short delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        // PERFORMANCE: Small delay (0.15s) to let animation context clear
+        // This prevents main thread congestion during sheet presentation
+        // For large datasets, the render load can delay sheet presentation without this
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             self.showItemDetail = true
         }
     }
@@ -436,6 +439,31 @@ final class SpinViewModel: ObservableObject {
         guard !allItems.isEmpty else { return }
         applyFiltersAndShuffle()
     }
+
+    // MARK: - Debug & Verification
+
+    #if DEBUG
+    /// Verify that the landing logic produces the expected result
+    /// Used for testing that virtualized rendering produces identical results to original
+    func verifyLandingLogic(targetIndex: Int, reelIndex: Int) -> Bool {
+        guard !shuffledItems.isEmpty else { return false }
+
+        let totalItems = shuffledItems.count
+        let finalIndex = ((reelIndex % totalItems) + totalItems) % totalItems
+        let landedItem = shuffledItems[finalIndex]
+        let expectedItem = shuffledItems[targetIndex % totalItems]
+
+        let matches = landedItem.id == expectedItem.id
+
+        if !matches {
+            logger.error(
+                "⚠️ Landing verification FAILED: Expected \(expectedItem.displayName), got \(landedItem.displayName)"
+            )
+        }
+
+        return matches
+    }
+    #endif
 }
 
 // MARK: - Spin Error
