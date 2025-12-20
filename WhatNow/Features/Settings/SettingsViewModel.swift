@@ -74,6 +74,7 @@ final class SettingsViewModel: ObservableObject {
     }
 
     func purchasePro() async {
+        print("🔵 SettingsViewModel.purchasePro() called")
         guard !isPurchasing else { return }
 
         isPurchasing = true
@@ -95,6 +96,7 @@ final class SettingsViewModel: ObservableObject {
     }
 
     func restorePurchases() async {
+        print("🟢 SettingsViewModel.restorePurchases() called")
         isPurchasing = true
         restoreResultMessage = nil
 

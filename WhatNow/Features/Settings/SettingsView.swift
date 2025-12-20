@@ -283,11 +283,12 @@ struct SettingsView: View {
                         .font(.appLargeTitle)
                         .foregroundColor(.App.text)
 
-                    Button(action: {
+                    Button {
+                        print("🟦 PURCHASE BUTTON TAPPED")
                         Task {
                             await viewModel.purchasePro()
                         }
-                    }) {
+                    } label: {
                         Text(viewModel.isPurchasing ? "Processing...".localized(for: viewModel.selectedLanguage) : "Purchase".localized(for: viewModel.selectedLanguage))
                             .font(.appHeadline)
                             .foregroundColor(.white)
@@ -296,15 +297,20 @@ struct SettingsView: View {
                             .background(Color.App.text)
                             .cornerRadius(12)
                     }
+                    .buttonStyle(.plain)
                     .disabled(viewModel.isPurchasing)
 
-                    Button("Restore Purchases".localized(for: viewModel.selectedLanguage)) {
+                    Button {
+                        print("🟩 RESTORE BUTTON TAPPED")
                         Task {
                             await viewModel.restorePurchases()
                         }
+                    } label: {
+                        Text("Restore Purchases".localized(for: viewModel.selectedLanguage))
+                            .font(.caption)
+                            .foregroundColor(.App.textSecondary)
                     }
-                    .font(.caption)
-                    .foregroundColor(.App.textSecondary)
+                    .buttonStyle(.plain)
                 }
                 .frame(maxWidth: .infinity)
             } else if viewModel.isLoadingProduct {
