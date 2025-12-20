@@ -51,6 +51,7 @@ enum SpinContext {
     case mall(Mall)
     case famousRestaurant
     case activity(category: String)
+    case customList(CustomSpinList)
 }
 
 // MARK: - Spin Type
@@ -60,4 +61,5 @@ enum SpinType: String {
     case mallStores = "mall_stores"
     case famousRestaurant = "famous_restaurant"
     case activity = "activity"
+    case customList = "custom_list"
 }

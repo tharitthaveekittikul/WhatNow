@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-struct ReelPicker: View {
-    let items: [Store]
+struct ReelPicker<Item: SpinnableItem>: View {
+    let items: [Item]
     let isSpinning: Bool
     @Binding var reelIndex: Int
     @EnvironmentObject private var appEnvironment: AppEnvironment
@@ -69,8 +69,8 @@ struct ReelPicker: View {
 
                     // Repeated items
                     ForEach(0..<totalRepeatedItems, id: \.self) { index in
-                        let store = items[index % items.count]
-                        reelItem(store: store, globalIndex: index)
+                        let item = items[index % items.count]
+                        reelItem(item: item, globalIndex: index)
                             .frame(height: itemHeight)
                     }
 
@@ -131,7 +131,7 @@ struct ReelPicker: View {
     // MARK: - Item View
 
     @ViewBuilder
-    private func reelItem(store: Store, globalIndex: Int) -> some View {
+    private func reelItem(item: Item, globalIndex: Int) -> some View {
         // Calculate distance from center for depth effects
         let itemPosition = (CGFloat(centerIndex) + CGFloat(globalIndex)) * itemHeight
         let centerPosition = -scrollPosition + CGFloat(centerIndex) * itemHeight
@@ -141,7 +141,7 @@ struct ReelPicker: View {
         let opacity = max(0.4, 1.0 - (distance * 0.25))
 
         VStack(spacing: 4) {
-            Text(store.name.localized(for: appEnvironment.currentLanguage))
+            Text(item.displayName)
                 .font(.appHeadline)
                 .foregroundColor(.App.text)
                 .lineLimit(2)
@@ -149,9 +149,11 @@ struct ReelPicker: View {
                 .multilineTextAlignment(.center)
                 .minimumScaleFactor(0.8)
 
-            Text(store.priceRange.displayText)
-                .font(.appCaption)
-                .foregroundColor(.App.textSecondary)
+            if !item.secondaryInfo.isEmpty {
+                Text(item.secondaryInfo)
+                    .font(.appCaption)
+                    .foregroundColor(.App.textSecondary)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .center)
         .frame(height: itemHeight)

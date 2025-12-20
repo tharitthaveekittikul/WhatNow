@@ -15,32 +15,67 @@ struct FoodCategoryView: View {
             Color.App.background
                 .ignoresSafeArea()
 
-            VStack(spacing: 24) {
-                Spacer()
-
+            VStack(spacing: 16) {
                 // Title
                 Text("What to Eat?".localized(for: appEnvironment.currentLanguage))
                     .font(.appLargeTitle)
                     .foregroundColor(.App.text)
+                    .padding(.top, 24)
 
                 Spacer()
 
-                // Source type cards
-                VStack(spacing: 20) {
+                // Source type cards in grid
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                     NavigationLink(value: AppRoute.mallSelection) {
-                        DecisionCardContent(
-                            title: FoodSourceType.mall.title(for: appEnvironment.currentLanguage),
-                            emoji: FoodSourceType.mall.emoji,
-                            accentColor: .App.accentLavender
+                        VStack(spacing: 12) {
+                            Text(FoodSourceType.mall.emoji)
+                                .font(.system(size: 48))
+
+                            Text(FoodSourceType.mall.title(for: appEnvironment.currentLanguage))
+                                .font(.appCallout)
+                                .foregroundColor(.App.text)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.8)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 110)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color.App.accentLavender.opacity(0.6))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(Color.App.accentLavender.opacity(0.4), lineWidth: 1)
                         )
                     }
                     .buttonStyle(CardButtonStyle())
 
                     NavigationLink(value: AppRoute.famousStores) {
-                        DecisionCardContent(
-                            title: FoodSourceType.famous.title(for: appEnvironment.currentLanguage),
-                            emoji: FoodSourceType.famous.emoji,
-                            accentColor: .App.accentWarm
+                        VStack(spacing: 12) {
+                            Text(FoodSourceType.famous.emoji)
+                                .font(.system(size: 48))
+
+                            Text(FoodSourceType.famous.title(for: appEnvironment.currentLanguage))
+                                .font(.appCallout)
+                                .foregroundColor(.App.text)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.8)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 110)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color.App.accentWarm.opacity(0.6))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(Color.App.accentWarm.opacity(0.4), lineWidth: 1)
                         )
                     }
                     .buttonStyle(CardButtonStyle())

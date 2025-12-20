@@ -15,5 +15,8 @@ enum AppRoute: Hashable {
     case famousStores
     case activitySpin(category: ActivityCategory)
     case spin(mall: Mall)
+    case customSpinList
+    case customSpinEditor(list: CustomSpinList?)
+    case customSpin(list: CustomSpinList)
     case settings
 }

@@ -65,24 +65,41 @@ struct ActivityCategoryView: View {
     }
 
     private var contentView: some View {
-        VStack(spacing: 24) {
-            Spacer()
-
+        VStack(spacing: 16) {
             // Title
             Text("What to Do?".localized(for: appEnvironment.currentLanguage))
                 .font(.appLargeTitle)
                 .foregroundColor(.App.text)
+                .padding(.top, 24)
 
             Spacer()
 
-            // Activity category cards (from API)
-            VStack(spacing: 20) {
+            // Activity category cards in grid (from API)
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 ForEach(viewModel.categories) { category in
                     NavigationLink(value: AppRoute.activitySpin(category: category)) {
-                        DecisionCardContent(
-                            title: appEnvironment.currentLanguage == .thai ? category.nameTH : category.nameEN,
-                            emoji: viewModel.emoji(for: category),
-                            accentColor: viewModel.accentColor(for: category)
+                        VStack(spacing: 12) {
+                            Text(viewModel.emoji(for: category))
+                                .font(.system(size: 48))
+
+                            Text(appEnvironment.currentLanguage == .thai ? category.nameTH : category.nameEN)
+                                .font(.appCallout)
+                                .foregroundColor(.App.text)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.8)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 110)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(viewModel.accentColor(for: category).opacity(0.6))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(viewModel.accentColor(for: category).opacity(0.4), lineWidth: 1)
                         )
                     }
                     .buttonStyle(CardButtonStyle())

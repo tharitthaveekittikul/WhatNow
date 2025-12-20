@@ -11,6 +11,7 @@ import Foundation
 enum DecisionCategory: String, CaseIterable, Identifiable {
     case food = "What to Eat?"
     case activity = "What to Do?"
+    case customSpin = "Your Spin"
 
     var id: String { rawValue }
 
@@ -18,6 +19,7 @@ enum DecisionCategory: String, CaseIterable, Identifiable {
         switch self {
         case .food: return "What to Eat?".localized(for: language)
         case .activity: return "What to Do?".localized(for: language)
+        case .customSpin: return "Your Spin".localized(for: language)
         }
     }
 
@@ -25,6 +27,7 @@ enum DecisionCategory: String, CaseIterable, Identifiable {
         switch self {
         case .food: return "🍽️"
         case .activity: return "🎯"
+        case .customSpin: return "✨"
         }
     }
 }

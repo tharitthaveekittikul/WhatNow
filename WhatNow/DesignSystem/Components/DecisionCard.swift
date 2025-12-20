@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// A card component for decision options
+/// A compact card component for decision options (similar to appearance mode buttons)
 struct DecisionCard: View {
     let title: String
     let emoji: String
@@ -16,20 +16,28 @@ struct DecisionCard: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 16) {
+            VStack(spacing: 12) {
                 Text(emoji)
-                    .font(.system(size: 60))
+                    .font(.system(size: 48))
 
                 Text(title)
-                    .font(.appTitle2)
+                    .font(.appCallout)
                     .foregroundColor(.App.text)
                     .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 40)
+            .frame(height: 110)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 16)
             .background(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(accentColor)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(accentColor.opacity(0.6))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(accentColor.opacity(0.4), lineWidth: 1)
             )
         }
         .buttonStyle(CardButtonStyle())

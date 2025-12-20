@@ -25,7 +25,8 @@ actor GoogleMobileAdsService: NSObject, AdsService {
 
     // Interstitial ad unit IDs
     private let interstitialAdUnitIDs: [InterstitialPlacement: String] = [
-        .spinResult: "ca-app-pub-9089812705885677/5475359315"
+        .spinResult: "ca-app-pub-9089812705885677/5475359315",
+        .customSpinResult: "ca-app-pub-9089812705885677/3127687138"
     ]
 
     // State
@@ -45,6 +46,10 @@ actor GoogleMobileAdsService: NSObject, AdsService {
         .spin: "ca-app-pub-9089812705885677/7671768502",
         .famousSpin: "ca-app-pub-9089812705885677/3979935505",
         .activitySpin: "ca-app-pub-9089812705885677/9306793116",
+        .customSpinList: "ca-app-pub-9089812705885677/1394312370",
+        .customSpinEditor: "ca-app-pub-9089812705885677/7870530314",
+        .customSpin: "ca-app-pub-9089812705885677/4496609127",
+        .customSpinResult: "ca-app-pub-9089812705885677/7385005658",
         .list: "ca-app-pub-9089812705885677/6680629778",
         .result: "ca-app-pub-9089812705885677/8045682338",
     ]

@@ -16,6 +16,7 @@ final class DependencyContainer: @unchecked Sendable {
     let logger: Logger
     let cacheService: CacheService
     let settingsStore: SettingsStore
+    let customSpinManager: CustomSpinManaging
 
     // MARK: - Services
 
@@ -36,6 +37,7 @@ final class DependencyContainer: @unchecked Sendable {
         self.logger = ConsoleLogger()
         self.cacheService = FileManagerCacheService(logger: logger)
         self.settingsStore = UserDefaultsSettingsStore()
+        self.customSpinManager = UserDefaultsCustomSpinManager(logger: logger)
 
         // Initialize services
         self.packsService = CachedAPIPacksService(

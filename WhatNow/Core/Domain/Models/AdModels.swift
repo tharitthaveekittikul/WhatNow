@@ -24,6 +24,10 @@ enum BannerPlacement: String, Sendable {
     case spin = "Spin_Banner"
     case famousSpin = "Famous_Spin_Banner"
     case activitySpin = "Activity_Spin_Banner"
+    case customSpinList = "Custom_Spin_List_Banner"
+    case customSpinEditor = "Custom_Spin_Editor_Banner"
+    case customSpin = "Custom_Spin_Banner"
+    case customSpinResult = "Custom_Spin_Result_Banner"
     case list = "List_Banner"
     case result = "Result_Banner"
 }
@@ -31,6 +35,7 @@ enum BannerPlacement: String, Sendable {
 /// Interstitial ad placement locations
 enum InterstitialPlacement: String, Sendable {
     case spinResult = "Spin_Interstitial"
+    case customSpinResult = "Custom_Spin_Interstitial"
 }
 
 /// Ad load state

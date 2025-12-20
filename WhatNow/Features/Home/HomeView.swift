@@ -17,9 +17,7 @@ struct HomeView: View {
                 Color.App.background
                     .ignoresSafeArea()
 
-                VStack(spacing: 24) {
-                    Spacer()
-
+                VStack(spacing: 16) {
                     // Title
                     VStack(spacing: 8) {
                         Text("WhatNow".localized(for: appEnvironment.currentLanguage))
@@ -30,32 +28,35 @@ struct HomeView: View {
                             .font(.appTitle3)
                             .foregroundColor(.App.textSecondary)
                     }
+                    .padding(.top, 24)
 
                     Spacer()
 
-                    // Decision cards
-                    VStack(spacing: 20) {
-                        Button {
+                    // Decision cards in grid
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        DecisionCard(
+                            title: DecisionCategory.food.title(for: appEnvironment.currentLanguage),
+                            emoji: DecisionCategory.food.emoji,
+                            accentColor: .App.accentWarm
+                        ) {
                             navigationPath.append(AppRoute.foodCategory)
-                        } label: {
-                            DecisionCardContent(
-                                title: DecisionCategory.food.title(for: appEnvironment.currentLanguage),
-                                emoji: DecisionCategory.food.emoji,
-                                accentColor: .App.accentWarm
-                            )
                         }
-                        .buttonStyle(CardButtonStyle())
 
-                        Button {
+                        DecisionCard(
+                            title: DecisionCategory.activity.title(for: appEnvironment.currentLanguage),
+                            emoji: DecisionCategory.activity.emoji,
+                            accentColor: .App.accentSky
+                        ) {
                             navigationPath.append(AppRoute.activityCategory)
-                        } label: {
-                            DecisionCardContent(
-                                title: DecisionCategory.activity.title(for: appEnvironment.currentLanguage),
-                                emoji: DecisionCategory.activity.emoji,
-                                accentColor: .App.accentSky
-                            )
                         }
-                        .buttonStyle(CardButtonStyle())
+
+                        DecisionCard(
+                            title: DecisionCategory.customSpin.title(for: appEnvironment.currentLanguage),
+                            emoji: DecisionCategory.customSpin.emoji,
+                            accentColor: .App.accentLavender
+                        ) {
+                            navigationPath.append(AppRoute.customSpinList)
+                        }
                     }
                     .padding(.horizontal, 24)
 
@@ -95,34 +96,15 @@ struct HomeView: View {
             ActivitySpinView(category: category)
         case .spin(let mall):
             SpinView(mall: mall)
+        case .customSpinList:
+            CustomSpinListView()
+        case .customSpinEditor(let list):
+            CustomSpinEditorView(list: list)
+        case .customSpin(let list):
+            CustomSpinView(list: list)
         case .settings:
             SettingsView()
         }
-    }
-}
-
-/// Card content without button wrapper (for use with NavigationLink)
-struct DecisionCardContent: View {
-    let title: String
-    let emoji: String
-    let accentColor: Color
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Text(emoji)
-                .font(.system(size: 60))
-
-            Text(title)
-                .font(.appTitle2)
-                .foregroundColor(.App.text)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(accentColor)
-        )
     }
 }
 

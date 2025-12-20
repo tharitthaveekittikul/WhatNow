@@ -147,6 +147,9 @@ final class SpinViewModel: ObservableObject {
                 await loadFamousRestaurants()
             case .activity(let category):
                 await loadActivities(category: category)
+            case .customList:
+                // Custom lists don't need loading from API
+                break
             }
 
             // Initial shuffle after loading
