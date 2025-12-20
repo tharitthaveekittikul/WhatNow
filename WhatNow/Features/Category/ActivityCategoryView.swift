@@ -25,9 +25,9 @@ struct ActivityCategoryView: View {
                 contentView
             }
         }
-        .navigationTitle("What to Do?".localized(for: appEnvironment.currentLanguage))
-        .navigationBarTitleDisplayMode(.inline)
-        .id(appEnvironment.languageDidChange) // Refresh when language changes
+        //        .navigationTitle("What to Do?".localized(for: appEnvironment.currentLanguage))
+        //        .navigationBarTitleDisplayMode(.inline)
+        .id(appEnvironment.languageDidChange)  // Refresh when language changes
         .task {
             guard !hasAppeared else { return }
             hasAppeared = true
@@ -73,33 +73,57 @@ struct ActivityCategoryView: View {
                 .padding(.top, 24)
 
             Spacer()
+                .frame(height: 24)
 
             // Activity category cards in grid (from API)
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            LazyVGrid(
+                columns: [GridItem(.flexible()), GridItem(.flexible())],
+                spacing: 12
+            ) {
                 ForEach(viewModel.categories) { category in
-                    NavigationLink(value: AppRoute.activitySpin(category: category)) {
+                    NavigationLink(
+                        value: AppRoute.activitySpin(category: category)
+                    ) {
                         VStack(spacing: 12) {
                             Text(viewModel.emoji(for: category))
                                 .font(.system(size: 48))
 
-                            Text(appEnvironment.currentLanguage == .thai ? category.nameTH : category.nameEN)
-                                .font(.appCallout)
-                                .foregroundColor(.App.text)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.8)
+                            Text(
+                                appEnvironment.currentLanguage == .thai
+                                    ? category.nameTH : category.nameEN
+                            )
+                            .font(.appCallout)
+                            .foregroundColor(.App.text)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 110)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 16)
                         .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(viewModel.accentColor(for: category).opacity(0.6))
+                            RoundedRectangle(
+                                cornerRadius: 16,
+                                style: .continuous
+                            )
+                            .fill(
+                                viewModel.accentColor(for: category).opacity(
+                                    0.6
+                                )
+                            )
                         )
                         .overlay(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .stroke(viewModel.accentColor(for: category).opacity(0.4), lineWidth: 1)
+                            RoundedRectangle(
+                                cornerRadius: 16,
+                                style: .continuous
+                            )
+                            .stroke(
+                                viewModel.accentColor(for: category).opacity(
+                                    0.4
+                                ),
+                                lineWidth: 1
+                            )
                         )
                     }
                     .buttonStyle(CardButtonStyle())

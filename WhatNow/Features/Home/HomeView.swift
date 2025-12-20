@@ -31,6 +31,7 @@ struct HomeView: View {
                     .padding(.top, 24)
 
                     Spacer()
+                        .frame(height: 24)
 
                     // Decision cards in grid
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {

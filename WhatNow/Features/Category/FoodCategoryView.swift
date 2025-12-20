@@ -17,38 +17,59 @@ struct FoodCategoryView: View {
 
             VStack(spacing: 16) {
                 // Title
-                Text("What to Eat?".localized(for: appEnvironment.currentLanguage))
-                    .font(.appLargeTitle)
-                    .foregroundColor(.App.text)
-                    .padding(.top, 24)
+                Text(
+                    "What to Eat?".localized(
+                        for: appEnvironment.currentLanguage
+                    )
+                )
+                .font(.appLargeTitle)
+                .foregroundColor(.App.text)
+                .padding(.top, 24)
 
                 Spacer()
+                    .frame(height: 24)
 
                 // Source type cards in grid
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                LazyVGrid(
+                    columns: [GridItem(.flexible()), GridItem(.flexible())],
+                    spacing: 12
+                ) {
                     NavigationLink(value: AppRoute.mallSelection) {
                         VStack(spacing: 12) {
                             Text(FoodSourceType.mall.emoji)
                                 .font(.system(size: 48))
 
-                            Text(FoodSourceType.mall.title(for: appEnvironment.currentLanguage))
-                                .font(.appCallout)
-                                .foregroundColor(.App.text)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.8)
+                            Text(
+                                FoodSourceType.mall.title(
+                                    for: appEnvironment.currentLanguage
+                                )
+                            )
+                            .font(.appCallout)
+                            .foregroundColor(.App.text)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 110)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 16)
                         .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color.App.accentLavender.opacity(0.6))
+                            RoundedRectangle(
+                                cornerRadius: 16,
+                                style: .continuous
+                            )
+                            .fill(Color.App.accentLavender.opacity(0.6))
                         )
                         .overlay(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .stroke(Color.App.accentLavender.opacity(0.4), lineWidth: 1)
+                            RoundedRectangle(
+                                cornerRadius: 16,
+                                style: .continuous
+                            )
+                            .stroke(
+                                Color.App.accentLavender.opacity(0.4),
+                                lineWidth: 1
+                            )
                         )
                     }
                     .buttonStyle(CardButtonStyle())
@@ -58,24 +79,37 @@ struct FoodCategoryView: View {
                             Text(FoodSourceType.famous.emoji)
                                 .font(.system(size: 48))
 
-                            Text(FoodSourceType.famous.title(for: appEnvironment.currentLanguage))
-                                .font(.appCallout)
-                                .foregroundColor(.App.text)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.8)
+                            Text(
+                                FoodSourceType.famous.title(
+                                    for: appEnvironment.currentLanguage
+                                )
+                            )
+                            .font(.appCallout)
+                            .foregroundColor(.App.text)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 110)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 16)
                         .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color.App.accentWarm.opacity(0.6))
+                            RoundedRectangle(
+                                cornerRadius: 16,
+                                style: .continuous
+                            )
+                            .fill(Color.App.accentWarm.opacity(0.6))
                         )
                         .overlay(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .stroke(Color.App.accentWarm.opacity(0.4), lineWidth: 1)
+                            RoundedRectangle(
+                                cornerRadius: 16,
+                                style: .continuous
+                            )
+                            .stroke(
+                                Color.App.accentWarm.opacity(0.4),
+                                lineWidth: 1
+                            )
                         )
                     }
                     .buttonStyle(CardButtonStyle())
@@ -85,9 +119,9 @@ struct FoodCategoryView: View {
                 Spacer()
             }
         }
-        .navigationTitle("What to Eat?".localized(for: appEnvironment.currentLanguage))
-        .navigationBarTitleDisplayMode(.inline)
-        .id(appEnvironment.languageDidChange) // Refresh when language changes
+        //        .navigationTitle("What to Eat?".localized(for: appEnvironment.currentLanguage))
+        //        .navigationBarTitleDisplayMode(.inline)
+        .id(appEnvironment.languageDidChange)  // Refresh when language changes
         .withBannerAd(placement: .foodCategory)
     }
 }
