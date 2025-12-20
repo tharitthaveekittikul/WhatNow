@@ -74,4 +74,8 @@ final class AppEnvironment: ObservableObject {
     var ratingService: RatingService {
         container.ratingService
     }
+
+    var trackingPermissionManager: TrackingPermissionManager {
+        container.trackingPermissionManager
+    }
 }

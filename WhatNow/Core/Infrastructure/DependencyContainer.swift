@@ -26,6 +26,7 @@ final class DependencyContainer: @unchecked Sendable {
     let ratingService: RatingService
     let spinSessionTracker: SpinSessionTracker
     let interstitialAdManager: InterstitialAdManager
+    let trackingPermissionManager: TrackingPermissionManager
 
     // MARK: - Use Cases
 
@@ -60,6 +61,7 @@ final class DependencyContainer: @unchecked Sendable {
             settingsStore: settingsStore,
             logger: logger
         )
+        self.trackingPermissionManager = TrackingPermissionManager(logger: logger)
 
         // Initialize use cases
         self.fetchMallsUseCase = DefaultFetchMallsUseCase(packsService: packsService)
