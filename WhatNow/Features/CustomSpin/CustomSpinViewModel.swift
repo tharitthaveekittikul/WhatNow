@@ -51,6 +51,32 @@ final class CustomSpinViewModel: ObservableObject {
     func spin() {
         guard !isSpinning, !items.isEmpty else { return }
 
+        // Check if we should show ad BEFORE spinning
+        Task {
+            // Record that spin button was tapped
+            await interstitialAdManager.recordSpin()
+
+            // Check if ad should show
+            let shouldShow = await interstitialAdManager.shouldShowInterstitialAfterSpin()
+
+            if shouldShow {
+                // Show ad FIRST, wait for it to be dismissed
+                let shown = await interstitialAdManager.showInterstitial()
+                if shown {
+                    await interstitialAdManager.recordInterstitialShown()
+                }
+            }
+
+            // AFTER ad is dismissed (or if no ad), start the actual spin
+            await MainActor.run {
+                self.startSpin()
+            }
+        }
+    }
+
+    // MARK: - Private Methods
+
+    private func startSpin() {
         isSpinning = true
         startGradientAnimation()
 
@@ -62,9 +88,12 @@ final class CustomSpinViewModel: ObservableObject {
         animateToTarget(targetIndex)
     }
 
-    // MARK: - Private Methods
-
     private func animateToTarget(_ targetIndex: Int) {
+        // Calculate final index that will show the correct item
+        // We want the reel to stop at targetIndex after multiple full rotations
+        let fullRotations = 5
+        let finalIndex = targetIndex + (items.count * fullRotations)
+
         // Fast spin phase
         withAnimation(.easeInOut(duration: 0.3)) {
             reelIndex = targetIndex + items.count * 3  // Spin multiple times
@@ -73,10 +102,10 @@ final class CustomSpinViewModel: ObservableObject {
         // Slow deceleration phase
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             withAnimation(.easeOut(duration: 2.5)) {
-                self.reelIndex = targetIndex + self.items.count * 5
+                self.reelIndex = finalIndex
             }
 
-            // Complete spin
+            // Complete spin - show result
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                 self.completeSpinning()
             }
@@ -91,23 +120,8 @@ final class CustomSpinViewModel: ObservableObject {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
 
-        // Track spin completion and show interstitial ad if needed
-        Task {
-            await interstitialAdManager.recordSpin()
-
-            let shouldShow = await interstitialAdManager.shouldShowInterstitialAfterSpin()
-            if shouldShow {
-                let shown = await interstitialAdManager.showInterstitial()
-                if shown {
-                    await interstitialAdManager.recordInterstitialShown()
-                }
-            }
-
-            // Show result AFTER ad is dismissed (or if no ad was shown)
-            await MainActor.run {
-                showResult = true
-            }
-        }
+        // Show result
+        showResult = true
     }
 
     private func startGradientAnimation() {
