@@ -129,17 +129,17 @@ struct SpinButton: View {
         return colorScheme == .dark ? Color.white : Color.white.opacity(0.95)
     }
 
-    // MARK: - Background gradient (your idea, but adaptive)
+    // MARK: - Background gradient (adaptive for proper contrast)
     private var buttonBackgroundGradient: LinearGradient {
-        // Use text/textSecondary as requested, but tweak per scheme:
-        // - Light: keep it slightly softer (less “black”)
-        // - Dark: keep it rich but not crush details
+        // Use dark colors in both modes to ensure white text is visible
+        // Light mode: use text colors (dark)
+        // Dark mode: use fixed dark colors for contrast
         let start = (colorScheme == .dark)
-        ? Color.App.text
+        ? Color(hex: "2B3440")
         : Color.App.text.opacity(0.92)
 
         let end = (colorScheme == .dark)
-        ? Color.App.textSecondary.opacity(0.95)
+        ? Color(hex: "1E2430")
         : Color.App.textSecondary.opacity(0.88)
 
         return LinearGradient(

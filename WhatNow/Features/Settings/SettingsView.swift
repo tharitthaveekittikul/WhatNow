@@ -12,6 +12,7 @@ struct SettingsView: View {
     @EnvironmentObject private var appEnvironment: AppEnvironment
     @StateObject private var viewModel: SettingsViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @State private var showSupportForm = false
     @State private var supportFormURL: URL?
     @State private var showWebView = false
@@ -206,7 +207,7 @@ struct SettingsView: View {
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.App.text)
+                            .background(colorScheme == .dark ? Color(hex: "2B3440") : Color.App.text)
                             .cornerRadius(12)
                     }
                     .buttonStyle(.plain)

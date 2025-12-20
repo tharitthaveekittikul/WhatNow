@@ -143,13 +143,15 @@ struct MallCardContent: View {
 }
 
 struct PrimaryButtonStyle: ButtonStyle {
+    @Environment(\.colorScheme) private var colorScheme
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.appHeadline)
             .foregroundColor(.white)
             .padding()
             .frame(maxWidth: .infinity)
-            .background(Color.App.text)
+            .background(colorScheme == .dark ? Color(hex: "2B3440") : Color.App.text)
             .cornerRadius(12)
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
     }
@@ -158,5 +160,6 @@ struct PrimaryButtonStyle: ButtonStyle {
 #Preview {
     NavigationStack {
         MallSelectionView()
+            .environmentObject(AppEnvironment())
     }
 }

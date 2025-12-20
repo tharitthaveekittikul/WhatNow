@@ -101,29 +101,31 @@ struct CustomSpinListContent: View {
     @EnvironmentObject private var appEnvironment: AppEnvironment
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                ForEach(lists) { list in
-                    NavigationLink(value: AppRoute.customSpin(list: list)) {
-                        CustomSpinListCard(list: list)
+        List {
+            ForEach(lists) { list in
+                NavigationLink(value: AppRoute.customSpin(list: list)) {
+                    CustomSpinListCard(list: list)
+                }
+                .listRowBackground(Color.App.background)
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                .swipeActions(edge: .trailing) {
+                    NavigationLink(value: AppRoute.customSpinEditor(list: list)) {
+                        Label("Edit".localized(for: appEnvironment.currentLanguage), systemImage: "pencil")
                     }
-                    .buttonStyle(CardButtonStyle())
-                    .swipeActions(edge: .trailing) {
-                        NavigationLink(value: AppRoute.customSpinEditor(list: list)) {
-                            Label("Edit".localized(for: appEnvironment.currentLanguage), systemImage: "pencil")
-                        }
-                        .tint(.blue)
+                    .tint(.blue)
 
-                        Button(role: .destructive) {
-                            onDelete(list)
-                        } label: {
-                            Label("Delete".localized(for: appEnvironment.currentLanguage), systemImage: "trash")
-                        }
+                    Button(role: .destructive) {
+                        onDelete(list)
+                    } label: {
+                        Label("Delete".localized(for: appEnvironment.currentLanguage), systemImage: "trash")
                     }
                 }
             }
-            .padding()
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Color.App.background)
     }
 }
 
@@ -153,9 +155,6 @@ struct CustomSpinListCard: View {
             }
 
             Spacer()
-
-            Image(systemName: "chevron.right")
-                .foregroundColor(.App.textTertiary)
         }
         .padding()
         .background(
