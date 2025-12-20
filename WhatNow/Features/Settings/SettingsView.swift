@@ -257,7 +257,7 @@ struct SettingsView: View {
                     .foregroundColor(.App.text)
 
                 Text("Thank you for your support!".localized(for: viewModel.state.selectedLanguage))
-                    .font(.appBody)
+                    .font(.appSubheadline)
                     .foregroundColor(.App.textSecondary)
             }
 
