@@ -22,6 +22,7 @@ final class DependencyContainer: @unchecked Sendable {
     let packsService: PacksService
     let adsService: AdsService
     let purchaseService: PurchaseService
+    let ratingService: RatingService
     let spinSessionTracker: SpinSessionTracker
     let interstitialAdManager: InterstitialAdManager
 
@@ -42,6 +43,7 @@ final class DependencyContainer: @unchecked Sendable {
             logger: logger
         )
         self.purchaseService = StoreKitPurchaseService(logger: logger)
+        self.ratingService = DefaultRatingService(logger: logger)
         self.adsService = GoogleMobileAdsService(
             logger: logger,
             purchaseService: purchaseService

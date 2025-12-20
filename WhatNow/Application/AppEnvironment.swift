@@ -70,4 +70,8 @@ final class AppEnvironment: ObservableObject {
     var purchaseService: PurchaseService {
         container.purchaseService
     }
+
+    var ratingService: RatingService {
+        container.ratingService
+    }
 }

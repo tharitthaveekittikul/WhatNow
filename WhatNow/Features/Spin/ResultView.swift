@@ -5,6 +5,7 @@
 //  Result view - shows after spin result (store/activity details)
 //
 
+import SafariServices
 import SwiftUI
 
 struct ResultView: View {
@@ -14,6 +15,8 @@ struct ResultView: View {
     let showSpinAgain: Bool
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var appEnvironment: AppEnvironment
+    @State private var showSupportForm = false
+    @State private var supportFormURL: URL?
 
     init(store: Store, mall: Mall? = nil, suggestedMallNames: String? = nil, showSpinAgain: Bool = false) {
         self.store = store
@@ -171,6 +174,36 @@ struct ResultView: View {
                         }
                     }
 
+                    // Report Problem button
+                    Button(action: {
+                        openReportProblem()
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.bubble.fill")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text(
+                                "Report Problem".localized(
+                                    for: appEnvironment.currentLanguage
+                                )
+                            )
+                            .font(.appHeadline)
+                        }
+                        .foregroundColor(.App.textSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(
+                                cornerRadius: 16,
+                                style: .continuous
+                            )
+                            .strokeBorder(
+                                Color.App.textSecondary.opacity(0.3),
+                                lineWidth: 2
+                            )
+                        )
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+
                     if showSpinAgain {
                         Button(action: { dismiss() }) {
                             HStack(spacing: 8) {
@@ -211,6 +244,61 @@ struct ResultView: View {
         .navigationBarTitleDisplayMode(.inline)
         .id(appEnvironment.languageDidChange)  // Refresh when language changes
         .withBannerAd(placement: .result)
+        .sheet(isPresented: $showSupportForm) {
+            if let url = supportFormURL {
+                SafariView(url: url)
+                    .ignoresSafeArea()
+            }
+        }
+    }
+
+    // MARK: - Actions
+
+    private func openReportProblem() {
+        Task {
+            let formBase = "https://docs.google.com/forms/d/e/1FAIpQLSeiBB9cJTxxyzQqVxUgs1L4Bi-yxr-RUqPzI_eOU5RA_eb_7g/viewform"
+
+            // Get app info
+            let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+            let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+            let deviceModel = UIDevice.current.model
+            let iosVersion = UIDevice.current.systemVersion
+            let appLanguage = appEnvironment.currentLanguage.rawValue
+            let appLocale = "\(appLanguage)_\(Locale.current.regionCode ?? "TH")"
+            let timeZone = TimeZone.current.identifier
+
+            // Check if user has Pro
+            let isProUser = await appEnvironment.purchaseService.hasPurchased(productId: "whatnow_pro")
+
+            var entries: [String: String] = [
+                "entry.644868148": appVersion,
+                "entry.573002577": buildNumber,
+                "entry.1516834508": deviceModel,
+                "entry.797688444": iosVersion,
+                "entry.114735768": appLocale,
+                "entry.266300204": timeZone,
+                "entry.2042691400": isProUser ? "Yes" : "No",
+            ]
+
+            // Add store-specific entries ONLY if this is a mall spin (has mall and location)
+            if let mall = mall, let location = store.location {
+                let storeName = store.name.localized(for: appEnvironment.currentLanguage)
+                let mallName = mall.name.localized(for: appEnvironment.currentLanguage)
+                let locationText = location.displayText
+
+                entries["entry.1754396415"] = storeName
+                entries["entry.1745886589"] = mallName
+                entries["entry.1618588487"] = locationText
+            }
+
+            var components = URLComponents(string: formBase)
+            components?.queryItems = entries.map {
+                URLQueryItem(name: $0.key, value: $0.value)
+            }
+
+            supportFormURL = components?.url
+            showSupportForm = true
+        }
     }
 }
 
@@ -284,6 +372,32 @@ struct ScaleButtonStyle: ButtonStyle {
                 value: configuration.isPressed
             )
     }
+}
+
+// Safari View for ResultView
+private struct SafariView: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        let config = SFSafariViewController.Configuration()
+        config.entersReaderIfAvailable = false
+        config.barCollapsingEnabled = true
+
+        let safari = SFSafariViewController(url: url, configuration: config)
+        safari.preferredControlTintColor = UIColor(Color.App.text)
+        return safari
+    }
+
+    func updateUIViewController(
+        _ uiViewController: SFSafariViewController,
+        context: Context
+    ) {}
+}
+
+// Helper type for sheet presentation
+private struct IdentifiableURL: Identifiable {
+    let id = UUID()
+    let url: URL
 }
 
 // Simple flow layout for tags
