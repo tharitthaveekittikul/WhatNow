@@ -47,6 +47,7 @@ struct ResultView: View {
                     .font(.appTitle)
                     .foregroundColor(.App.text)
                     .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
 
                     // Price range
                     Text(store.priceRange.displayText)
@@ -236,6 +237,8 @@ struct ResultView: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, 32)
             }
+            .frame(maxWidth: 600)
+            .frame(maxWidth: .infinity)
         }
         .background(Color.App.background.ignoresSafeArea())
         .navigationTitle(

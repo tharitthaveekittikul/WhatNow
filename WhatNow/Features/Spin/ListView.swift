@@ -74,6 +74,8 @@ struct ListView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 16)
+            .frame(maxWidth: 600)
+            .frame(maxWidth: .infinity)
         }
         .background(Color.App.background.ignoresSafeArea())
         .navigationTitle(
