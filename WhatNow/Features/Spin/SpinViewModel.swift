@@ -147,9 +147,8 @@ final class SpinViewModel: ObservableObject {
                 await loadFamousRestaurants()
             case .activity(let category):
                 await loadActivities(category: category)
-            case .customList:
-                // Custom lists don't need loading from API
-                break
+            case .customList(let list):
+                loadCustomList(list)
             }
 
             // Initial shuffle after loading
@@ -277,6 +276,33 @@ final class SpinViewModel: ObservableObject {
             errorMessage =
                 "Failed to load activities: \(error.localizedDescription)"
         }
+    }
+
+    private func loadCustomList(_ list: CustomSpinList) {
+        logger.info(
+            "✨ Loading custom list: \(list.name) with \(list.items.count) items",
+            category: .business
+        )
+
+        // Convert CustomSpinItem to Store
+        allItems = list.items.map { item in
+            Store(
+                id: item.id.uuidString,
+                name: LocalizedName(th: item.text, en: item.text),
+                displayName: item.text,
+                tags: [],
+                priceRange: .mid,  // Default, not used for custom items
+                location: nil,
+                detailUrl: nil,
+                mapUrl: nil,
+                logoUrl: nil
+            )
+        }
+
+        logger.info(
+            "✅ Loaded \(allItems.count) custom items",
+            category: .business
+        )
     }
 
     // MARK: - Filter Management

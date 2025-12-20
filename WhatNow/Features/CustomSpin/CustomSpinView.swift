@@ -8,11 +8,21 @@
 import SwiftUI
 
 struct CustomSpinView: View {
-    @StateObject private var viewModel: CustomSpinViewModel
+    let list: CustomSpinList
+    @StateObject private var viewModel: SpinViewModel
     @EnvironmentObject private var appEnvironment: AppEnvironment
+    @State private var hasAppeared = false
 
     init(list: CustomSpinList) {
-        _viewModel = StateObject(wrappedValue: CustomSpinViewModel(list: list))
+        self.list = list
+        let config = SpinConfiguration(
+            context: .customList(list),
+            title: LocalizedName(th: list.name, en: list.name),
+            showSeeAllButton: false,
+            filteringEnabled: false,
+            spinType: .customList
+        )
+        _viewModel = StateObject(wrappedValue: SpinViewModel(configuration: config))
     }
 
     var body: some View {
@@ -20,29 +30,30 @@ struct CustomSpinView: View {
             Color.App.background
                 .ignoresSafeArea()
 
-            if viewModel.items.isEmpty {
+            if viewModel.isLoading {
+                ProgressView()
+                    .tint(.App.text)
+            } else if viewModel.shuffledItems.isEmpty {
                 emptyStateView
             } else {
                 contentView
             }
         }
-        //        .navigationTitle(viewModel.list.name)
-        //        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink(
-                    value: AppRoute.customSpinEditor(list: viewModel.list)
-                ) {
+                NavigationLink(value: AppRoute.customSpinEditor(list: list)) {
                     Image(systemName: "pencil.circle.fill")
                         .foregroundColor(.App.text)
                 }
             }
         }
-        .sheet(isPresented: $viewModel.showResult) {
+        .sheet(isPresented: $viewModel.showItemDetail) {
             resultSheet
         }
-        .onAppear {
-            viewModel.reshuffleItems()
+        .task {
+            guard !hasAppeared else { return }
+            hasAppeared = true
+            await viewModel.loadItems()
         }
         .id(appEnvironment.languageDidChange)
         .withBannerAd(placement: .customSpin)
@@ -52,40 +63,38 @@ struct CustomSpinView: View {
         VStack(spacing: 8) {
             // Header
             VStack(spacing: 8) {
-                Text(viewModel.list.emoji)
+                Text(list.emoji)
                     .font(.system(size: 60))
 
-                Text(viewModel.list.name)
+                Text(list.name)
                     .font(.appTitle2)
                     .foregroundColor(.App.text)
 
                 Text(
-                    "\(viewModel.items.count) items".localized(
+                    "\(viewModel.shuffledItems.count) items".localized(
                         for: appEnvironment.currentLanguage
                     )
                 )
                 .font(.appCallout)
                 .foregroundColor(.App.textSecondary)
             }
-        
+
             // Reel Picker
             ReelPicker(
-                items: viewModel.items,
+                items: viewModel.shuffledItems,
                 isSpinning: viewModel.isSpinning,
                 reelIndex: $viewModel.reelIndex
             )
-
 
             // Spin Button
             SpinButton(
                 isSpinning: viewModel.isSpinning,
                 gradientRotation: viewModel.gradientRotation,
-                isDisabled: false,
+                isDisabled: !viewModel.canSpin,
                 action: { viewModel.spin() }
             )
             .padding(.horizontal, 24)
             .padding(.bottom)
-
         }
     }
 
@@ -108,9 +117,7 @@ struct CustomSpinView: View {
             .foregroundColor(.App.textSecondary)
             .multilineTextAlignment(.center)
 
-            NavigationLink(
-                value: AppRoute.customSpinEditor(list: viewModel.list)
-            ) {
+            NavigationLink(value: AppRoute.customSpinEditor(list: list)) {
                 Text("Edit List".localized(for: appEnvironment.currentLanguage))
             }
             .buttonStyle(PrimaryButtonStyle())
@@ -125,10 +132,10 @@ struct CustomSpinView: View {
             NavigationStack {
                 CustomSpinResultView(
                     item: selectedItem,
-                    listEmoji: viewModel.list.emoji,
+                    listEmoji: list.emoji,
                     onSpinAgain: {
-                        viewModel.showResult = false
-                        viewModel.reshuffleItems()
+                        viewModel.showItemDetail = false
+                        viewModel.applyFiltersAndShuffle()
                     }
                 )
             }
@@ -139,7 +146,7 @@ struct CustomSpinView: View {
 // MARK: - Custom Spin Result View
 
 struct CustomSpinResultView: View {
-    let item: CustomSpinItem
+    let item: Store
     let listEmoji: String
     let onSpinAgain: () -> Void
     @Environment(\.dismiss) private var dismiss
@@ -158,7 +165,7 @@ struct CustomSpinResultView: View {
                     Text(listEmoji)
                         .font(.system(size: 120))
 
-                    Text(item.text)
+                    Text(item.displayName)
                         .font(.appLargeTitle)
                         .foregroundColor(.App.text)
                         .multilineTextAlignment(.center)
@@ -222,7 +229,7 @@ struct CustomSpinResultView: View {
                     CustomSpinItem(text: "Action"),
                     CustomSpinItem(text: "Comedy"),
                     CustomSpinItem(text: "Drama"),
-                    CustomSpinItem(text: "Horror"),
+                    CustomSpinItem(text: "Horror")
                 ],
                 emoji: "🎬"
             )

@@ -11,6 +11,7 @@ struct ReelPicker<Item: SpinnableItem>: View {
     let items: [Item]
     let isSpinning: Bool
     @Binding var reelIndex: Int
+    var autoSpin: Bool = true  // Set to false for external control
     @EnvironmentObject private var appEnvironment: AppEnvironment
 
     // MARK: - Configuration
@@ -111,13 +112,18 @@ struct ReelPicker<Item: SpinnableItem>: View {
             updateScrollPosition(animated: false)
         }
         .onChange(of: isSpinning) { spinning in
-            if spinning {
+            if spinning && autoSpin {
                 startSpin()
             }
         }
         .onChange(of: reelIndex) { newIndex in
-            // Update when reelIndex changes externally (not during spin or animation)
-            if !isSpinning && !isAnimating {
+            // If autoSpin is false, always follow reelIndex changes (external control)
+            // No animation here because the binding value itself is animated by the parent
+            if !autoSpin {
+                updateScrollPosition(animated: false)
+            }
+            // If autoSpin is true, only update when not spinning/animating
+            else if !isSpinning && !isAnimating {
                 updateScrollPosition(animated: false)
             }
         }
