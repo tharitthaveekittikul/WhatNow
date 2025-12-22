@@ -186,7 +186,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 8) {
                 benefitRow(icon: "xmark.circle.fill", text: "Remove all ads".localized(for: viewModel.state.selectedLanguage))
                 benefitRow(icon: "star.fill", text: "Unlock upcoming Pro features".localized(for: viewModel.state.selectedLanguage))
-                benefitRow(icon: "heart.fill", text: "Support development".localized(for: viewModel.state.selectedLanguage))
+                benefitRow(icon: "cup.and.heat.waves.fill", text: "Buy me a coffee".localized(for: viewModel.state.selectedLanguage))
             }
 
             // Price and Purchase Button
@@ -257,7 +257,7 @@ struct SettingsView: View {
                     .font(.appTitle)
                     .foregroundColor(.App.text)
 
-                Text("Thank you for your support!".localized(for: viewModel.state.selectedLanguage))
+                Text("Thanks for the coffee! ☕".localized(for: viewModel.state.selectedLanguage))
                     .font(.appSubheadline)
                     .foregroundColor(.App.textSecondary)
             }
