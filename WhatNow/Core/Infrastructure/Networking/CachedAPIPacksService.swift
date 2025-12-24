@@ -24,6 +24,7 @@ actor CachedAPIPacksService: PacksService {
 
     // Cache configuration
     private let cacheMaxAge: TimeInterval = 7 * 24 * 60 * 60  // 7 days
+    private let catalogCacheMaxAge: TimeInterval = 60 * 60  // 1 hour (catalog refreshes frequently)
 
     // Cache keys
     private enum CacheKey {
@@ -70,24 +71,46 @@ actor CachedAPIPacksService: PacksService {
         isFetchingMalls = true
         defer { isFetchingMalls = false }
 
-        // Try to load from cache first (with time-based expiration check)
-        // If cache exists and is not expired, use it directly
+        // Try to load from cache first
         if let cached = try? await loadFromCache(
             key: CacheKey.mallsIndex,
             type: MallsIndex.self
         ) {
-            let mallNames = cached.data.malls.prefix(3).map { $0.displayName }.joined(separator: ", ")
-            let preview = cached.data.malls.count > 3 ? "\(mallNames)... (\(cached.data.malls.count) total)" : mallNames
-            logger.info(
-                "📦 Cache hit: malls_index (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s)",
-                category: .networking
-            )
-            logger.debug(
-                "   └─ Cached data: [\(preview)]",
-                category: .networking
-            )
-            cachedMalls = cached.data.malls
-            return cached.data.malls
+            // Cache exists - check if version matches catalog
+            do {
+                let catalog = try await getCatalog()
+                let catalogVersion = catalog.packs.mallsIndex.version
+
+                if cached.version == catalogVersion {
+                    // Version matches - use cache
+                    let mallNames = cached.data.malls.prefix(3).map { $0.displayName }.joined(separator: ", ")
+                    let preview = cached.data.malls.count > 3 ? "\(mallNames)... (\(cached.data.malls.count) total)" : mallNames
+                    logger.info(
+                        "📦 Cache hit: malls_index (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - version matches catalog",
+                        category: .networking
+                    )
+                    logger.debug(
+                        "   └─ Cached data: [\(preview)]",
+                        category: .networking
+                    )
+                    cachedMalls = cached.data.malls
+                    return cached.data.malls
+                } else {
+                    // Version mismatch - cache is stale
+                    logger.info(
+                        "🔄 Cache stale: malls_index (cached v\(cached.version), catalog v\(catalogVersion)) - fetching fresh data",
+                        category: .networking
+                    )
+                }
+            } catch {
+                // If catalog fetch fails, use cache anyway (offline support)
+                logger.warning(
+                    "⚠️ Failed to fetch catalog, using cached malls_index (v\(cached.version))",
+                    category: .networking
+                )
+                cachedMalls = cached.data.malls
+                return cached.data.malls
+            }
         }
 
         // Cache expired or doesn't exist - fetch from API
@@ -145,25 +168,55 @@ actor CachedAPIPacksService: PacksService {
         fetchingMallIds.insert(mallId)
         defer { fetchingMallIds.remove(mallId) }
 
-        // Try to load from cache first (with time-based expiration check)
-        // If cache exists and is not expired, use it directly
+        // Try to load from cache first
         if let cached = try? await loadFromCache(
             key: CacheKey.mall(mallId),
             type: MallPack.self
         ) {
-            let storeCount = cached.data.categories.flatMap { $0.items }.count
-            let categoryNames = cached.data.categories.prefix(2).map { $0.name.en ?? $0.name.th ?? "Unknown" }.joined(separator: ", ")
-            let categoryPreview = cached.data.categories.count > 2 ? "\(categoryNames)... (\(cached.data.categories.count) categories)" : categoryNames
-            logger.info(
-                "📦 Cache hit: mall_\(mallId) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s)",
-                category: .networking
-            )
-            logger.debug(
-                "   └─ Cached data: \(storeCount) stores in [\(categoryPreview)]",
-                category: .networking
-            )
-            cachedMallPacks[mallId] = cached.data
-            return cached.data
+            // Cache exists - check if version matches catalog
+            do {
+                let catalog = try await getCatalog()
+                let catalogEntry = catalog.malls.first { $0.mallId == mallId }
+
+                if let catalogVersion = catalogEntry?.version, cached.version == catalogVersion {
+                    // Version matches - use cache
+                    let storeCount = cached.data.categories.flatMap { $0.items }.count
+                    let categoryNames = cached.data.categories.prefix(2).map { $0.name.en ?? $0.name.th ?? "Unknown" }.joined(separator: ", ")
+                    let categoryPreview = cached.data.categories.count > 2 ? "\(categoryNames)... (\(cached.data.categories.count) categories)" : categoryNames
+                    logger.info(
+                        "📦 Cache hit: mall_\(mallId) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - version matches catalog",
+                        category: .networking
+                    )
+                    logger.debug(
+                        "   └─ Cached data: \(storeCount) stores in [\(categoryPreview)]",
+                        category: .networking
+                    )
+                    cachedMallPacks[mallId] = cached.data
+                    return cached.data
+                } else if let catalogVersion = catalogEntry?.version {
+                    // Version mismatch - cache is stale
+                    logger.info(
+                        "🔄 Cache stale: mall_\(mallId) (cached v\(cached.version), catalog v\(catalogVersion)) - fetching fresh data",
+                        category: .networking
+                    )
+                } else {
+                    // Mall not in catalog (shouldn't happen) - use cache
+                    logger.warning(
+                        "⚠️ Mall \(mallId) not found in catalog, using cached data (v\(cached.version))",
+                        category: .networking
+                    )
+                    cachedMallPacks[mallId] = cached.data
+                    return cached.data
+                }
+            } catch {
+                // If catalog fetch fails, use cache anyway (offline support)
+                logger.warning(
+                    "⚠️ Failed to fetch catalog, using cached mall_\(mallId) (v\(cached.version))",
+                    category: .networking
+                )
+                cachedMallPacks[mallId] = cached.data
+                return cached.data
+            }
         }
 
         // Cache expired or doesn't exist - fetch from API
@@ -201,17 +254,39 @@ actor CachedAPIPacksService: PacksService {
 
         // Check disk cache first
         if let cached = try? await loadFromCache(key: key, type: FamousStoresPack.self) {
-            let storeNames = cached.data.items.prefix(3).map { $0.name }.joined(separator: ", ")
-            let preview = cached.data.items.count > 3 ? "\(storeNames)... (\(cached.data.items.count) total)" : storeNames
-            logger.info(
-                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s)",
-                category: .networking
-            )
-            logger.debug(
-                "   └─ Cached data: [\(preview)]",
-                category: .networking
-            )
-            return cached.data
+            // Cache exists - check if version matches catalog
+            do {
+                let catalog = try await getCatalog()
+                let catalogVersion = catalog.packs.famousStores.version
+
+                if cached.version == catalogVersion {
+                    // Version matches - use cache
+                    let storeNames = cached.data.items.prefix(3).map { $0.name }.joined(separator: ", ")
+                    let preview = cached.data.items.count > 3 ? "\(storeNames)... (\(cached.data.items.count) total)" : storeNames
+                    logger.info(
+                        "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - version matches catalog",
+                        category: .networking
+                    )
+                    logger.debug(
+                        "   └─ Cached data: [\(preview)]",
+                        category: .networking
+                    )
+                    return cached.data
+                } else {
+                    // Version mismatch - cache is stale
+                    logger.info(
+                        "🔄 Cache stale: \(key) (cached v\(cached.version), catalog v\(catalogVersion)) - fetching fresh data",
+                        category: .networking
+                    )
+                }
+            } catch {
+                // If catalog fetch fails, use cache anyway (offline support)
+                logger.warning(
+                    "⚠️ Failed to fetch catalog, using cached data (v\(cached.version))",
+                    category: .networking
+                )
+                return cached.data
+            }
         }
 
         // Fetch from API
@@ -257,17 +332,39 @@ actor CachedAPIPacksService: PacksService {
 
         // Check disk cache first
         if let cached = try? await loadFromCache(key: key, type: ActivitiesIndex.self) {
-            let categoryNames = cached.data.categories.prefix(3).map { $0.nameEN }.joined(separator: ", ")
-            let preview = cached.data.categories.count > 3 ? "\(categoryNames)... (\(cached.data.categories.count) total)" : categoryNames
-            logger.info(
-                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s)",
-                category: .networking
-            )
-            logger.debug(
-                "   └─ Cached data: [\(preview)]",
-                category: .networking
-            )
-            return cached.data
+            // Cache exists - check if version matches catalog
+            do {
+                let catalog = try await getCatalog()
+                let catalogVersion = catalog.packs.activities.version
+
+                if cached.version == catalogVersion {
+                    // Version matches - use cache
+                    let categoryNames = cached.data.categories.prefix(3).map { $0.nameEN }.joined(separator: ", ")
+                    let preview = cached.data.categories.count > 3 ? "\(categoryNames)... (\(cached.data.categories.count) total)" : categoryNames
+                    logger.info(
+                        "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - version matches catalog",
+                        category: .networking
+                    )
+                    logger.debug(
+                        "   └─ Cached data: [\(preview)]",
+                        category: .networking
+                    )
+                    return cached.data
+                } else {
+                    // Version mismatch - cache is stale
+                    logger.info(
+                        "🔄 Cache stale: \(key) (cached v\(cached.version), catalog v\(catalogVersion)) - fetching fresh data",
+                        category: .networking
+                    )
+                }
+            } catch {
+                // If catalog fetch fails, use cache anyway (offline support)
+                logger.warning(
+                    "⚠️ Failed to fetch catalog, using cached \(key) (v\(cached.version))",
+                    category: .networking
+                )
+                return cached.data
+            }
         }
 
         // Fetch from API
@@ -289,17 +386,46 @@ actor CachedAPIPacksService: PacksService {
 
         // Check disk cache first
         if let cached = try? await loadFromCache(key: key, type: ActivityPack.self) {
-            let activityNames = cached.data.items.prefix(3).map { $0.nameTH }.joined(separator: ", ")
-            let preview = cached.data.items.count > 3 ? "\(activityNames)... (\(cached.data.items.count) total)" : activityNames
-            logger.info(
-                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s)",
-                category: .networking
-            )
-            logger.debug(
-                "   └─ Cached data: [\(preview)]",
-                category: .networking
-            )
-            return cached.data
+            // Cache exists - check if version matches catalog
+            do {
+                let catalog = try await getCatalog()
+                let catalogEntry = catalog.activities.first { $0.categoryId == categoryId }
+
+                if let catalogVersion = catalogEntry?.version, cached.version == catalogVersion {
+                    // Version matches - use cache
+                    let activityNames = cached.data.items.prefix(3).map { $0.nameTH }.joined(separator: ", ")
+                    let preview = cached.data.items.count > 3 ? "\(activityNames)... (\(cached.data.items.count) total)" : activityNames
+                    logger.info(
+                        "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - version matches catalog",
+                        category: .networking
+                    )
+                    logger.debug(
+                        "   └─ Cached data: [\(preview)]",
+                        category: .networking
+                    )
+                    return cached.data
+                } else if let catalogVersion = catalogEntry?.version {
+                    // Version mismatch - cache is stale
+                    logger.info(
+                        "🔄 Cache stale: \(key) (cached v\(cached.version), catalog v\(catalogVersion)) - fetching fresh data",
+                        category: .networking
+                    )
+                } else {
+                    // Activity category not in catalog (shouldn't happen) - use cache
+                    logger.warning(
+                        "⚠️ Activity category \(categoryId) not found in catalog, using cached data (v\(cached.version))",
+                        category: .networking
+                    )
+                    return cached.data
+                }
+            } catch {
+                // If catalog fetch fails, use cache anyway (offline support)
+                logger.warning(
+                    "⚠️ Failed to fetch catalog, using cached \(key) (v\(cached.version))",
+                    category: .networking
+                )
+                return cached.data
+            }
         }
 
         // Fetch from API
@@ -399,6 +525,21 @@ actor CachedAPIPacksService: PacksService {
     }
 
     // MARK: - Private Helper Methods
+
+    /// Get catalog with version information (short TTL for frequent updates)
+    private func getCatalog() async throws -> CatalogPack {
+        let key = "catalog"
+
+        // Check cache with short TTL (1 hour)
+        if let cached = try? await cache.load(forKey: key, type: CatalogPack.self, maxAge: catalogCacheMaxAge) {
+            return cached.data
+        }
+
+        // Fetch fresh catalog from API
+        let catalog = try await fetchFromAPI(CatalogPack.self, endpoint: "/v1/packs/catalog")
+        try? await saveToCache(catalog, forKey: key, version: catalog.version)
+        return catalog
+    }
 
     /// Generic fetch from API with error handling
     private func fetchFromAPI<T: Decodable>(_ type: T.Type, endpoint: String) async throws -> T {

@@ -17,7 +17,7 @@ struct FamousStoresSpinView: View {
             context: .famousRestaurant,
             title: LocalizedName(th: "ร้านดัง", en: "Famous Restaurants"),
             showSeeAllButton: true,
-            filteringEnabled: false,  // No filtering for famous restaurants
+            filteringEnabled: true,
             spinType: .famousRestaurant
         )
         _viewModel = StateObject(
@@ -48,6 +48,9 @@ struct FamousStoresSpinView: View {
         .sheet(isPresented: $viewModel.showItemList) {
             itemListSheet
         }
+        .sheet(isPresented: $viewModel.showFilterSheet) {
+            filterSheet
+        }
         .task {
             guard !hasAppeared else { return }
             hasAppeared = true
@@ -57,6 +60,9 @@ struct FamousStoresSpinView: View {
             if !viewModel.allItems.isEmpty {
                 viewModel.reshuffleItems()
             }
+        }
+        .onChange(of: viewModel.filter) { _ in
+            viewModel.applyFiltersAndShuffle()
         }
         .id(appEnvironment.languageDidChange)
         .withBannerAd(placement: .famousSpin)
@@ -100,16 +106,25 @@ struct FamousStoresSpinView: View {
                 subtitle: viewModel.displaySubtitle(
                     for: appEnvironment.currentLanguage
                 ),
-                filterCount: 0,
-                hasActiveFilters: false,
+                filterCount: viewModel.activeFilterCount,
+                hasActiveFilters: viewModel.hasActiveFilters,
                 isDisabled: viewModel.filterControlsDisabled,
                 showSeeAllButton: true,
-                showFilterButton: false,  // No filter for famous restaurants
-                onFilterTap: {},
+                showFilterButton: true,
+                onFilterTap: { viewModel.openFilterSheet() },
                 onSeeAllTap: { viewModel.openItemList() }
             )
 
-            // Reel Picker
+            // Active filter chips
+            FilterChipsView(
+                filter: viewModel.filter,
+                onRemoveCategory: { viewModel.removeCategory($0) },
+                onRemovePriceRange: { viewModel.removePriceRange($0) },
+                onClearAll: { viewModel.clearAllFilters() }
+            )
+            .opacity(viewModel.filterControlsDisabled ? 0.5 : 1.0)
+
+            // Reel Picker or empty state
             if !viewModel.shuffledItems.isEmpty {
                 ReelPicker(
                     items: viewModel.shuffledItems,
@@ -118,6 +133,8 @@ struct FamousStoresSpinView: View {
                 )
                 .padding(.vertical, 16)
                 .id(viewModel.shuffledItems.map { $0.id }.joined())
+            } else {
+                emptyStateView
             }
 
             // Spin Button
@@ -131,6 +148,35 @@ struct FamousStoresSpinView: View {
             .padding(.bottom, 32)
         }
         .padding(.top, 24)
+    }
+
+    private var emptyStateView: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 48))
+                .foregroundColor(.orange)
+
+            Text(
+                "No stores match filters".localized(
+                    for: appEnvironment.currentLanguage
+                )
+            )
+            .font(.appTitle3)
+            .foregroundColor(.App.text)
+            .multilineTextAlignment(.center)
+
+            Text(
+                "Try adjusting your filters".localized(
+                    for: appEnvironment.currentLanguage
+                )
+            )
+            .font(.appCallout)
+            .foregroundColor(.App.textSecondary)
+            .multilineTextAlignment(.center)
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .frame(height: CGFloat(5) * 80 + 32)
     }
 
     // MARK: - Sheet Views
@@ -168,6 +214,10 @@ struct FamousStoresSpinView: View {
                 )
             )
         }
+    }
+
+    private var filterSheet: some View {
+        FilterSheet(stores: viewModel.allItems, filter: $viewModel.filter)
     }
 }
 

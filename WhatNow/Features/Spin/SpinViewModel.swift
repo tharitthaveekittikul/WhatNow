@@ -226,7 +226,7 @@ final class SpinViewModel: ObservableObject {
                     priceRange: item.priceRange,
                     location: nil,
                     detailUrl: nil,
-                    mapUrl: nil,
+                    mapUrl: item.mapUrl,
                     logoUrl: nil
                 )
             }

@@ -14,6 +14,7 @@ struct FamousStoreItem: Identifiable, Hashable, Sendable, Codable {
     let tags: [String]
     let priceRange: PriceRange
     let suggestedMalls: [String]?
+    let mapUrl: String?
 }
 
 /// Famous stores pack response
