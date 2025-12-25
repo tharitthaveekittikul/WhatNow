@@ -180,15 +180,14 @@ actor CachedAPIPacksService: PacksService {
 
                 if let catalogVersion = catalogEntry?.version, cached.version == catalogVersion {
                     // Version matches - use cache
-                    let storeCount = cached.data.categories.flatMap { $0.items }.count
-                    let categoryNames = cached.data.categories.prefix(2).map { $0.name.en ?? $0.name.th ?? "Unknown" }.joined(separator: ", ")
-                    let categoryPreview = cached.data.categories.count > 2 ? "\(categoryNames)... (\(cached.data.categories.count) categories)" : categoryNames
+                    let storeCount = cached.data.stores.count
+                    let categoryCount = cached.data.taxonomy.allCategoryIds.count
                     logger.info(
                         "📦 Cache hit: mall_\(mallId) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s) - version matches catalog",
                         category: .networking
                     )
                     logger.debug(
-                        "   └─ Cached data: \(storeCount) stores in [\(categoryPreview)]",
+                        "   └─ Cached data: \(storeCount) stores, \(categoryCount) categories",
                         category: .networking
                     )
                     cachedMallPacks[mallId] = cached.data
@@ -226,15 +225,14 @@ actor CachedAPIPacksService: PacksService {
         )
         let mallPack = try await fetchMallPackFromAPI(mallId: mallId)
 
-        let storeCount = mallPack.categories.flatMap { $0.items }.count
-        let categoryNames = mallPack.categories.prefix(2).map { $0.name.en ?? $0.name.th ?? "Unknown" }.joined(separator: ", ")
-        let categoryPreview = mallPack.categories.count > 2 ? "\(categoryNames)... (\(mallPack.categories.count) categories)" : categoryNames
+        let storeCount = mallPack.stores.count
+        let categoryCount = mallPack.taxonomy.allCategoryIds.count
         logger.info(
-            "✅ Decoded \(mallPack.categories.count) categories (v\(mallPack.version)), caching...",
+            "✅ Decoded \(storeCount) stores, \(categoryCount) categories (v\(mallPack.version)), caching...",
             category: .networking
         )
         logger.debug(
-            "   └─ Response data: \(storeCount) stores in [\(categoryPreview)]",
+            "   └─ Response data: \(storeCount) stores across \(categoryCount) categories",
             category: .networking
         )
         try? await saveToCache(

@@ -172,16 +172,21 @@ final class SpinViewModel: ObservableObject {
             mallId: mall.mallId
         )
 
-        // Get all stores from the "all" category
-        if let allCategory = mallPack.categories.first(where: { $0.id == "all" }
-        ) {
-            allItems = allCategory.items
+        // Get all stores (new API provides flat array, old API had categories)
+        let allStores = mallPack.stores
 
-            // PERFORMANCE: Build O(1) lookup dictionary for stores
-            storesById = Dictionary(
-                uniqueKeysWithValues: allItems.map { ($0.id, $0) }
-            )
-        } else {
+        // Deduplicate stores by ID (in case old API has duplicates)
+        var uniqueStores: [String: Store] = [:]
+        for store in allStores {
+            uniqueStores[store.id] = store
+        }
+
+        allItems = Array(uniqueStores.values)
+
+        // PERFORMANCE: Build O(1) lookup dictionary for stores (already deduplicated)
+        storesById = uniqueStores
+
+        if allItems.isEmpty {
             throw SpinError.noCategoryFound
         }
     }
