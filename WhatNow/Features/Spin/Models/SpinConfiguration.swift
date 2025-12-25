@@ -50,6 +50,7 @@ struct SpinConfiguration {
 enum SpinContext {
     case mall(Mall)
     case famousRestaurant
+    case michelinGuide
     case activity(category: String)
     case customList(CustomSpinList)
 }
@@ -60,6 +61,7 @@ enum SpinContext {
 enum SpinType: String {
     case mallStores = "mall_stores"
     case famousRestaurant = "famous_restaurant"
+    case michelinGuide = "michelin_guide"
     case activity = "activity"
     case customList = "custom_list"
 }

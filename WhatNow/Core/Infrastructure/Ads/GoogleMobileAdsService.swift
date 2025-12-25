@@ -52,6 +52,7 @@ actor GoogleMobileAdsService: NSObject, AdsService {
         .customSpinResult: "ca-app-pub-9089812705885677/7385005658",
         .list: "ca-app-pub-9089812705885677/6680629778",
         .result: "ca-app-pub-9089812705885677/8045682338",
+        .michelinSpin: "ca-app-pub-9089812705885677/8946828322"
     ]
 
     // MARK: - Initialization

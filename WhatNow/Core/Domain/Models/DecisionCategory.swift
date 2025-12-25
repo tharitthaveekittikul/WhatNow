@@ -36,6 +36,7 @@ enum DecisionCategory: String, CaseIterable, Identifiable {
 enum FoodSourceType: String, CaseIterable, Identifiable {
     case mall = "Mall Stores"
     case famous = "Famous Stores"
+    case michelin = "Starred restaurant"
 
     var id: String { rawValue }
 
@@ -43,6 +44,7 @@ enum FoodSourceType: String, CaseIterable, Identifiable {
         switch self {
         case .mall: return "Mall Stores".localized(for: language)
         case .famous: return "Famous Stores".localized(for: language)
+        case .michelin: return (language == .thai) ? "ร้านติดดาว" : "Starred restaurant"
         }
     }
 
@@ -50,6 +52,7 @@ enum FoodSourceType: String, CaseIterable, Identifiable {
         switch self {
         case .mall: return "🏬"
         case .famous: return "⭐"
+        case .michelin: return "🌟"
         }
     }
 }

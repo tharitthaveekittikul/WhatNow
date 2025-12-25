@@ -23,6 +23,7 @@ enum BannerPlacement: String, Sendable {
     case foodCategory = "Food_Category_Banner"
     case spin = "Spin_Banner"
     case famousSpin = "Famous_Spin_Banner"
+    case michelinSpin = "Michelin_Spin_Banner"
     case activitySpin = "Activity_Spin_Banner"
     case customSpinList = "Custom_Spin_List_Banner"
     case customSpinEditor = "Custom_Spin_Editor_Banner"

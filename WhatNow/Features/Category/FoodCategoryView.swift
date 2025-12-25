@@ -113,6 +113,59 @@ struct FoodCategoryView: View {
                         )
                     }
                     .buttonStyle(CardButtonStyle())
+
+                    NavigationLink(value: AppRoute.michelinGuide) {
+                        VStack(spacing: 12) {
+                            Text(FoodSourceType.michelin.emoji)
+                                .font(.system(size: 48))
+
+                            Text(
+                                FoodSourceType.michelin.title(
+                                    for: appEnvironment.currentLanguage
+                                )
+                            )
+                            .font(.appCallout)
+                            .foregroundColor(.App.text)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 110)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(
+                                cornerRadius: 16,
+                                style: .continuous
+                            )
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.orange.opacity(0.6),
+                                        Color.red.opacity(0.6)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                        )
+                        .overlay(
+                            RoundedRectangle(
+                                cornerRadius: 16,
+                                style: .continuous
+                            )
+                            .stroke(
+                                LinearGradient(
+                                    colors: [Color.orange.opacity(0.4), Color.red.opacity(0.4)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                        )
+                    }
+                    .buttonStyle(CardButtonStyle())
                 }
                 .padding(.horizontal, 24)
 

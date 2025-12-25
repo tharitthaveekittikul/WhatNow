@@ -20,6 +20,10 @@ protocol PacksService: Sendable {
     /// Fetch famous stores list
     func fetchFamousStores() async throws -> FamousStoresPack
 
+    // MARK: - Starred Restaurants
+    /// Fetch starred restaurants
+    func fetchMichelinRestaurants() async throws -> MallPack
+
     // MARK: - Activities
     /// Fetch activity categories
     func fetchActivityCategories() async throws -> ActivitiesIndex

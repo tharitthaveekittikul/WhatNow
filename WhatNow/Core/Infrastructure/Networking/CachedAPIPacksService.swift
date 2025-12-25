@@ -35,6 +35,7 @@ actor CachedAPIPacksService: PacksService {
     init(
         baseURL: String =
             "https://whatnow-api-867193034636.asia-southeast1.run.app",
+//        baseURL: String = "http://192.168.1.36:8080",
         session: URLSession = .shared,
         cache: CacheService,
         logger: Logger
@@ -308,6 +309,66 @@ actor CachedAPIPacksService: PacksService {
             logger.info("✅ Decoded \(pack.items.count) famous stores (v\(pack.version)), caching...", category: .networking)
             logger.debug(
                 "   └─ Response data: [\(preview)]",
+                category: .networking
+            )
+            try? await saveToCache(pack, forKey: key, version: pack.version)
+            return pack
+        } catch let error as APIError {
+            throw error
+        } catch let error as DecodingError {
+            logger.error("❌ Decoding failed: \(error)", category: .networking)
+            throw APIError.decodingError(error)
+        } catch {
+            logger.error("❌ Network error: \(error)", category: .networking)
+            throw APIError.networkError(error)
+        }
+    }
+
+    // MARK: - Starred Restaurants
+
+    func fetchMichelinRestaurants() async throws -> MallPack {
+        let key = "michelin_thailand"
+
+        // Check disk cache first
+        if let cached = try? await loadFromCache(key: key, type: MallPack.self) {
+            // Cache exists - use it (starred restaurant data doesn't change often)
+            let storeCount = cached.data.stores.count
+            logger.info(
+                "📦 Cache hit: \(key) (v\(cached.version), age: \(Int(Date().timeIntervalSince(cached.cachedAt)))s)",
+                category: .networking
+            )
+            logger.debug(
+                "   └─ Cached data: \(storeCount) restaurants",
+                category: .networking
+            )
+            return cached.data
+        }
+
+        // Fetch from API
+        logger.info("🌐 API Request: GET /v1/packs/food/michelin-thailand", category: .networking)
+
+        do {
+            let url = URL(string: "\(baseURL)/v1/packs/food/michelin-thailand")!
+            let (data, response) = try await session.data(from: url)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw APIError.invalidResponse
+            }
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                // Special logging for 404 - Starred restaurant data might not be ready yet
+                if httpResponse.statusCode == 404 {
+                    logger.info("ℹ️ Starred restaurant data not available yet (404)", category: .networking)
+                }
+                throw APIError.parse(from: data, statusCode: httpResponse.statusCode)
+            }
+
+            let pack = try decodeResponse(data: data, type: MallPack.self)
+            let storeCount = pack.stores.count
+            let categoryCount = pack.taxonomy.allCategoryIds.count
+            logger.info("✅ Decoded \(storeCount) starred restaurants, \(categoryCount) categories (v\(pack.version)), caching...", category: .networking)
+            logger.debug(
+                "   └─ Response data: \(storeCount) restaurants across \(categoryCount) categories",
                 category: .networking
             )
             try? await saveToCache(pack, forKey: key, version: pack.version)

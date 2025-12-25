@@ -13,6 +13,7 @@ enum AppRoute: Hashable {
     case activityCategory
     case mallSelection
     case famousStores
+    case michelinGuide
     case activitySpin(category: ActivityCategory)
     case spin(mall: Mall)
     case customSpinList

@@ -147,6 +147,8 @@ final class SpinViewModel: ObservableObject {
                 try await loadMallStores(mall: mall)
             case .famousRestaurant:
                 await loadFamousRestaurants()
+            case .michelinGuide:
+                try await loadMichelinRestaurants()
             case .activity(let category):
                 await loadActivities(category: category)
             case .customList(let list):
@@ -185,6 +187,37 @@ final class SpinViewModel: ObservableObject {
 
         // PERFORMANCE: Build O(1) lookup dictionary for stores (already deduplicated)
         storesById = uniqueStores
+
+        if allItems.isEmpty {
+            throw SpinError.noCategoryFound
+        }
+    }
+
+    private func loadMichelinRestaurants() async throws {
+        logger.info(
+            "🌐 Fetching starred restaurants from API",
+            category: .networking
+        )
+        let mallPack = try await packsService.fetchMichelinRestaurants()
+
+        // Get all stores (Michelin data uses MallPack structure)
+        let allStores = mallPack.stores
+
+        // Deduplicate stores by ID (safety measure)
+        var uniqueStores: [String: Store] = [:]
+        for store in allStores {
+            uniqueStores[store.id] = store
+        }
+
+        allItems = Array(uniqueStores.values)
+
+        // PERFORMANCE: Build O(1) lookup dictionary for stores (already deduplicated)
+        storesById = uniqueStores
+
+        logger.info(
+            "✅ Loaded \(allItems.count) starred restaurants",
+            category: .networking
+        )
 
         if allItems.isEmpty {
             throw SpinError.noCategoryFound

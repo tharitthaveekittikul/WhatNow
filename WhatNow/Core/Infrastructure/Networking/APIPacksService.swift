@@ -14,6 +14,7 @@ final class APIPacksService: PacksService {
 
     init(
         baseURL: String = "https://whatnow-api-867193034636.asia-southeast1.run.app",
+//        baseURL: String = "http://192.168.1.36:8080",
         session: URLSession = .shared
     ) {
         self.baseURL = baseURL
@@ -63,6 +64,12 @@ final class APIPacksService: PacksService {
 
     func fetchFamousStores() async throws -> FamousStoresPack {
         try await fetch(FamousStoresPack.self, from: "/v1/packs/food/famous-stores")
+    }
+
+    // MARK: - Starred Restaurants
+
+    func fetchMichelinRestaurants() async throws -> MallPack {
+        try await fetch(MallPack.self, from: "/v1/packs/food/michelin-thailand")
     }
 
     // MARK: - Activities
